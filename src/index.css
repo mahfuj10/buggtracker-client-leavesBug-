@@ -5,9 +5,32 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f7fd;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.cursor-pointer {
+  cursor: pointer;
+}
+.pointer-events-none {
+  pointer-events: none;
+}
+.task_cell_container .sort_icon {
+  opacity: 0;
+  transition: 0.2s;
+}
+.task_cell_container:hover .sort_icon {
+  opacity: 1;
+}
+/* .add_task_form > .MuiDrawer-paper {
+  width: 120% !important;
+  }
+  
+  @media (max-width: 1200px) {
+      .MuiDrawer-paper {
+   width: 100% !important;
+   }
+  } */
