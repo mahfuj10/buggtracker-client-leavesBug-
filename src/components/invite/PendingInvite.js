@@ -2,18 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../../App.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserById, isUserAlreadyExist, selectUser, updateUser } from '../../reducers/auth/authSlice';
+import { getUserById, isUserAlreadyExist, selectUser, setUser, updateUser } from '../../reducers/auth/authSlice';
 import { getTeamById, updateTeam } from '../../reducers/team/teamSlice';
 import { Button } from '@mui/material';
 import { useUtils } from '../../utils/useUtils';
-import { LOGIN } from '../../utils/path';
+import { HOME, LOGIN } from '../../utils/path';
 import Loader from '../common/Loader/Loader';
+import { TEAM_UPDATED } from '../../utils/socket-events';
+import socket from '../../utils/socket';
 
 export default function PendingInvite() {
 
   const [inviter, setInviter] = useState({});
   const [invitee, setInvitee] = useState({});
   const [isFetching, setIsFetching] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [team, setTeam] = useState({});
 
   const dispatch = useDispatch();
@@ -21,7 +24,7 @@ export default function PendingInvite() {
   const { path } = useParams();
 
   const { removeSpecialCharacters } = useUtils();
-  const loginUser = useSelector(selectUser);
+  const currentLoginUser = useSelector(selectUser);
   
 
   async function fetchData(){
@@ -53,6 +56,8 @@ export default function PendingInvite() {
 
   const handleAcceptInvite = async() => {
     try {
+      setIsLoading(true);
+
       const remining_team_invited = invitee.teamInvited.filter(id => id !== team._id);
       const team_joined = invitee.teamJoined.filter(id => id !== team._id);
       const team_pending_members = team.pendingMembers.filter(id => id !== invitee._id);
@@ -63,16 +68,24 @@ export default function PendingInvite() {
         teamJoined: [...team_joined, team._id]
       }));
       
-      await dispatch(updateTeam(team._id, {
+      const updated_team = await dispatch(updateTeam(team._id, {
         pendingMembers: team_pending_members, 
         members: [...team_members, invitee._id]
       }));
 
-      console.log(team_members);
-      console.log(team_joined);
+      if(currentLoginUser.teamJoined && currentLoginUser.teamJoined.length === 0){
+        localStorage.setItem('team_id', updated_team._id);
+      }
+      
+      const user = await dispatch(getUserById(currentLoginUser.uid));
+      
+      socket.emit(TEAM_UPDATED, updated_team);
+      dispatch(setUser(user));
+      navigate(HOME);
     }catch(err){
       console.log(err);
     }
+    setIsLoading(false);
   };
 
   function getParameterValue(parameter, queryString) {
@@ -94,7 +107,7 @@ export default function PendingInvite() {
         <p>Invited by: {inviter.name} ({inviter.email})</p>
       </div>
       
-      { !loginUser?.uid ? 
+      { !currentLoginUser?.uid ? 
         <div className="login-button">
           <p>Please log in to accept the invitation.</p>
           <Button variant="outlined" onClick={()=>navigate(LOGIN)}>
@@ -103,7 +116,7 @@ export default function PendingInvite() {
         </div>
         :
         <div className="login-button">
-          <Button variant="outlined" onClick={handleAcceptInvite}>
+          <Button disabled={isLoading} variant="outlined" onClick={handleAcceptInvite}>
                Accept
           </Button>
         </div>

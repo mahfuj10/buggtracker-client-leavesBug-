@@ -1,21 +1,20 @@
 import { Add } from '@mui/icons-material';
 import { Box, Button, IconButton, Typography } from '@mui/material';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import React, { useEffect } from 'react';
 import {  useSelector, useDispatch } from 'react-redux';
-import AdjustIcon from '@mui/icons-material/Adjust';
+import { useParams } from 'react-router-dom';
 import TaskTable from './TaskTable';
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/material/styles';
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import MuiAccordionSummary from '@mui/material/AccordionSummary';
-import {  selectSprint, setDragging, setSprint, setTask, updateProjectSprint } from '../../reducers/project/projectSlice';
+import {  selectProject, selectSprint, setDragging, setProject, setSprint, setTask, updateProjectSprint } from '../../reducers/project/projectSlice';
 import socket from '../../utils/socket';
 import {  Adjust, ExpandMore, MoreHoriz } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { updateTask } from '../../reducers/task/taskSlice';
+import { NEW_TASK } from '../../utils/socket-events';
 
 
 const AccordionSummary = styled((props) => (
@@ -35,20 +34,12 @@ const AccordionSummary = styled((props) => (
 
 
 export default function ListTaskContainer({ toggleDrawer = () => {} }) {
-  const sprint = useSelector(selectSprint);
+
   const dispatch = useDispatch();
+  const { id } = useParams();
 
-
-  useEffect(() => {
-    socket.on('newTask', (task) => {
-      console.log('new task from socket', task);
-      dispatch(setSprint({...sprint, tasks: [...sprint.tasks, task]}));
-    });
-    return () => {
-      socket.off('newTask');
-    };
-  }, [socket]);
-
+  const currentSprint = useSelector(selectSprint);
+  const currentProject = useSelector(selectProject);
   
   const rearangeArr = (arr, sourceIndex, destIndex) => {
     const arrCopy = [...arr];
@@ -67,49 +58,78 @@ export default function ListTaskContainer({ toggleDrawer = () => {} }) {
 
     if (destination.droppableId === 'Parent') {
       dispatch(setSprint({
-        ...sprint,
-        status: rearangeArr(sprint.status, source.index, destination.index)
+        ...currentSprint,
+        status: rearangeArr(currentSprint.status, source.index, destination.index)
       }));
       
-      await dispatch(updateProjectSprint(sprint._id, {
-        status:  rearangeArr(sprint.status, source.index, destination.index)
+      await dispatch(updateProjectSprint(currentSprint._id, {
+        status:  rearangeArr(currentSprint.status, source.index, destination.index)
       }));
       
     } else if (destination.droppableId !== source.droppableId) {
-      const taskIndex = sprint.tasks.findIndex(task => task._id === result.draggableId);
-      const status = sprint.status.find(status => status._id === result.destination.droppableId);
+      const taskIndex = currentSprint.tasks.findIndex(task => task._id === result.draggableId);
+      const status = currentSprint.status.find(status => status._id === result.destination.droppableId);
 
       if (taskIndex !== -1 && status) {
-        const task = sprint.tasks[taskIndex];
+        const task = currentSprint.tasks[taskIndex];
         const updated_task = await dispatch(updateTask(task._id, {...task, status}));
 
-        const updatedTasks = [...sprint.tasks];
+        const updatedTasks = [...currentSprint.tasks];
         updatedTasks[taskIndex] = updated_task;
 
         dispatch(setSprint({
-          ...sprint,
+          ...currentSprint,
           tasks: updatedTasks,
         }));
 
-        await dispatch(updateProjectSprint(sprint._id, {
+        await dispatch(updateProjectSprint(currentSprint._id, {
           tasks: updatedTasks.map(task => task._id)
         }));
       }
   
     } else {
-      const ids = rearangeArr(sprint.tasks, source.index, destination.index).map(task => task._id);
+      const ids = rearangeArr(currentSprint.tasks, source.index, destination.index).map(task => task._id);
       
       dispatch(setSprint({
-        ...sprint,
-        tasks: rearangeArr(sprint.tasks, source.index, destination.index)
+        ...currentSprint,
+        tasks: rearangeArr(currentSprint.tasks, source.index, destination.index)
       }));
 
-      await dispatch(updateProjectSprint(sprint._id, {
+      await dispatch(updateProjectSprint(currentSprint._id, {
         tasks: ids
       }));
     }
 
   };
+
+
+  useEffect(() => {
+    socket.on(NEW_TASK, async({ task, projectId, sprintId }) => {
+      if(id === projectId){
+        const sprintIndex = currentProject.sprints.findIndex(sprint => sprint._id === sprintId);
+
+        if (sprintIndex !== -1) {
+          const updatedSprints = [...currentProject.sprints];
+          updatedSprints[sprintIndex] = {
+            ...updatedSprints[sprintIndex],
+            tasks: [...updatedSprints[sprintIndex].tasks, task]
+          };
+          const sprint = updatedSprints.find(sprint => sprint._id === sprintId);
+
+          dispatch(setProject({ ...currentProject, sprints: updatedSprints }));
+          
+          if(sprint._id === sprintId){
+            dispatch(setSprint(sprint));
+          }
+        }
+      }
+    });
+
+    return () => {
+      socket.off(NEW_TASK);
+    };
+  },[socket]);
+
 
   return (
     <Box width={'100%'}>
@@ -122,7 +142,7 @@ export default function ListTaskContainer({ toggleDrawer = () => {} }) {
         <Droppable droppableId="Parent" type="droppableItem">
           {(provided) => (
             <div ref={provided.innerRef}>
-              {((sprint && sprint.status) || []).map((status, index) => (
+              {((currentSprint && currentSprint.status) || []).map((status, index) => (
                 <Draggable
                   draggableId={`status-${status._id}`}
                   key={`status-${status._id}`}
@@ -163,7 +183,7 @@ export default function ListTaskContainer({ toggleDrawer = () => {} }) {
                                   {status.name}
                                 </Button>
              
-                                <Typography fontSize={12} color='#656f7d'>{sprint.tasks.length}</Typography>
+                                <Typography fontSize={12} color='#656f7d'>{currentSprint.tasks.length}</Typography>
                    
                                 <IconButton sx={{ borderRadius: 2 }} size='small' onClick={(e)  =>  e.stopPropagation()}>
                                   <MoreHoriz fontSize='12px' />

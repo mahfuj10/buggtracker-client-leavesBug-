@@ -7,6 +7,7 @@ const PENDING_INVITE = '/pending-invite';
 const CREATE_PROJECT = '/create-project';
 const PROJECT = '/project';
 const MANAGE_PROJECT = '/manage-project';
+const MANAGE_TEAM = '/manage-team';
 const ME = '/me';
 const SETTING = '/setting';
 
@@ -20,6 +21,7 @@ module.exports = {
   CREATE_PROJECT,
   PROJECT,
   MANAGE_PROJECT,
+  MANAGE_TEAM,
   ME,
   SETTING
 };

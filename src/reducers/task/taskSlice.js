@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-export const createTask = (teamName, data) => async () =>  {
+export const createTask = (data) => async () =>  {
   try{
-    const response = await axios.post(`${process.env.REACT_APP_SERVER_BASE_URL}/task/create?roomId=${teamName}`, data);
+    const response = await axios.post(`${process.env.REACT_APP_SERVER_BASE_URL}/task/create`, data);
   
     return response.data;
   }catch(err){

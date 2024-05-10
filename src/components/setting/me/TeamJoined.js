@@ -7,11 +7,13 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { Avatar, Box, Button, IconButton } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser, updateUser } from '../../../reducers/auth/authSlice';
+import { getUserById, selectUser, setUser, updateUser } from '../../../reducers/auth/authSlice';
 import { Cached, Delete, ExitToApp, RadioButtonChecked } from '@mui/icons-material';
 import AlertDialog from '../../common/AlertDialog';
 import { getTeamById, selectTeam, updateTeam, updateTeamState } from '../../../reducers/team/teamSlice';
 import DeleteTeamDialog from './DeleteTeamDialog';
+import { TEAM_UPDATED } from '../../../utils/socket-events';
+import socket from '../../../utils/socket';
 
 const rows = [
   'Image',
@@ -52,15 +54,22 @@ export default function TeamJoined() {
       const remining_memeber_ids = remining_memebers.map(member => member._id);
       const team_joined_ids = currentLoginUser.teamJoined.filter(t => t._id !== team._id).map(t => t._id);
 
-      await dispatch(updateTeam(team._id, {
+      const updated_team =  await dispatch(updateTeam(team._id, {
         members: remining_memeber_ids
       }));
+
+      socket.emit(TEAM_UPDATED, updated_team);
 
       await dispatch(updateUser(currentLoginUser._id, {
         teamJoined: team_joined_ids
       }));
 
-      localStorage.setItem('team_id', team_joined_ids && team_joined_ids[0]);
+      const user = await dispatch(getUserById(currentLoginUser.uid));
+      dispatch(setUser(user));
+
+      if(team_joined_ids.length > 0){
+        localStorage.setItem('team_id', team_joined_ids && team_joined_ids[0]);
+      }
 
     }catch(err){
       console.error(err);

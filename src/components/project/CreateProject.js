@@ -1,17 +1,15 @@
-import { Box, Button, TextField, TextareaAutosize } from '@mui/material';
+import { Box, Button, TextField } from '@mui/material';
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { selectUser } from '../../reducers/auth/authSlice';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useUtils } from '../../utils/useUtils';
+import { Polyline } from '@mui/icons-material';
 
 export default function CreateProject( { handleCreateProject, isLoading = false} ) {
   
   const [projectName, setProjectName] = useState('');
-  const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState(null);
   const [targetEndDate, setTargetEndDate] = useState(null);
   
@@ -45,6 +43,7 @@ export default function CreateProject( { handleCreateProject, isLoading = false}
         <Box display='flex' columnGap={2} marginY={3}>
           
           <DesktopDatePicker 
+            sx={{width:'100%'}}
             label='Start date (optional)'
             onChange={e => setStartDate(formatDate(e.$d))} 
             disablePast
@@ -52,6 +51,7 @@ export default function CreateProject( { handleCreateProject, isLoading = false}
 
           <DesktopDatePicker 
             disablePast
+            sx={{width:'100%'}}
             label='Target end date (optional)'
             onChange={e => setTargetEndDate(formatDate(e.$d))} 
             minDate={dayjs(startDate)} 
@@ -59,27 +59,16 @@ export default function CreateProject( { handleCreateProject, isLoading = false}
         </Box>
       </LocalizationProvider>
 
-      <TextField
-        label="Description (optional)"
-        variant='outlined'
-        multiline
-        rows={3}
-        onChange={e => setDescription(e.target.value)}
-        fullWidth
-      />
-
       <Button 
-        fullWidth
         variant="outlined"
         color='success'
         onClick={() => handleCreateProject({
           projectName,
-          description,
           startDate,
           targetEndDate
         })}
-        sx={{ mt: 3 }}
         disabled={isLoading}
+        startIcon={<Polyline />}
       >
           Create Project
       </Button>

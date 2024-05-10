@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -7,11 +7,13 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import {  Box, Button } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser, updateUser } from '../../../reducers/auth/authSlice';
+import { selectUser, updateUser, setUser, getUserById } from '../../../reducers/auth/authSlice';
 import { getTeamById, updateTeam } from '../../../reducers/team/teamSlice';
 import AlertDialog from '../../common/AlertDialog';
 import { sendMail } from '../../../reducers/email/emailSlice';
 import { TEAM_INVITATION_REJECT_SUBJECT, TEAM_INVITATION_REJECT_TEMPLATE } from '../../../utils/template';
+import socket from '../../../utils/socket';
+import { TEAM_UPDATED, USER_UPDATED } from '../../../utils/socket-events';
 
 const rows = [
   'Team Name',
@@ -53,6 +55,46 @@ export default function TeamInvited() {
         template: TEAM_INVITATION_REJECT_TEMPLATE(selectedTeam.createor.name, currentLoginUser.name)
       }));
 
+      dispatch(setUser({
+        ...currentLoginUser,
+        teamInvited: remining_team_invited, 
+      }));  
+    }catch(err){
+      console.error(err);
+    }
+    setIsLoading(false);
+  };
+
+  const acceptTeamInvite = async(teamId) => {
+    try{
+      setIsLoading(true);
+
+      const team = await dispatch(getTeamById(teamId));
+      console.log(team);
+      if(!team) return Promise.reject('err');
+
+      const remining_team_invited = currentLoginUser.teamInvited.filter(item => item._id !== team._id);
+      const team_joined = currentLoginUser.teamJoined.filter(item => item._id !== team._id);
+      const team_pending_members = team.pendingMembers.filter(member => member._id !== currentLoginUser._id);
+      const team_members = team.members.filter(member => member._id !== currentLoginUser._id);
+
+      await dispatch(updateUser(currentLoginUser._id, {
+        teamInvited: remining_team_invited, 
+        teamJoined: [...team_joined, team._id]
+      }));
+      
+      const updated_team = await dispatch(updateTeam(team._id, {
+        pendingMembers: team_pending_members, 
+        members: [...team_members, currentLoginUser._id]
+      }));
+
+      dispatch(setUser({
+        ...currentLoginUser,
+        teamInvited: remining_team_invited,
+        teamJoined: team_joined
+      }));      
+
+      socket.emit(TEAM_UPDATED, updated_team);
     }catch(err){
       console.error(err);
     }
@@ -63,6 +105,14 @@ export default function TeamInvited() {
     setOpenDialog(!openDialog);
   };
 
+  useEffect(() => {
+    socket.on(USER_UPDATED, (user) => {
+      // if(currentLoginUser.uid === user.uid){
+      console.log('updated_user_from_socket {TeamInvited.js}', user);
+      dispatch(setUser(user));
+      // }
+    });
+  },[socket]);
 
   return (
     <TableContainer component={Box}>
@@ -113,6 +163,7 @@ export default function TeamInvited() {
                   variant='outlined'
                   color='success'
                   disabled={isLoading}
+                  onClick={() => acceptTeamInvite(team._id)}
                 >
                     Accept
                 </Button>

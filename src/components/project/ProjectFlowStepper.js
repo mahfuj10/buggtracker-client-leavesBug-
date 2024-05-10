@@ -15,8 +15,9 @@ const steps = [
 export default function ProjectFlowStepper({ activeStep, func = () => {} }) {
   
   return (
-    <Box width='100%' display='' bgcolor='#fff' boxShadow={1} paddingY={1}>
-      <Stepper activeStep={activeStep} alternativeLabel>
+    <Box width='100%' display='flex' alignItems={'center'} bgcolor='#fff' boxShadow={1} paddingY={1}>
+      
+      <Stepper sx={{width:'100%'}} activeStep={activeStep} alternativeLabel>
         {
           steps.map(label => (
             <Step key={label}>
@@ -24,10 +25,12 @@ export default function ProjectFlowStepper({ activeStep, func = () => {} }) {
             </Step>
           ))
         }
-        <IconButton onClick={() => func()}>
-          <AutorenewIcon />
-        </IconButton>
+        
       </Stepper>
+          
+      <IconButton onClick={() => func()}>
+        <AutorenewIcon />
+      </IconButton>
 
     </Box>
   );

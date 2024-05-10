@@ -147,16 +147,7 @@ export const signInWithGoogle = () => async (dispatch) => {
     dispatch(setError(error.message));
   }
 };
-
-const setProjectANDSprint = async(dispatch) => {
-  try{
-    console.log('object');
-  }catch(err){
-    console.error(err);
-  }
-
-};
-
+ 
 export const initAuthListener = (dispatch) => {
   dispatch(setInitialized(false));
   auth.onAuthStateChanged(async(user) => {
@@ -165,9 +156,12 @@ export const initAuthListener = (dispatch) => {
         const response = await dispatch(getUserById(user.uid));
         
         const team_id = localStorage.getItem('team_id');
-        if(!team_id) {
-          localStorage.setItem('team_id', response.teamJoined && response.teamJoined[2]?._id);
-        } else {
+
+        if(!team_id && response.teamJoined && response.teamJoined[0]) {
+          localStorage.setItem('team_id', response.teamJoined[0]._id);
+        } 
+
+        if(team_id){
           const team = await dispatch(getTeamById(team_id));
           dispatch(setTeam(team));
         }

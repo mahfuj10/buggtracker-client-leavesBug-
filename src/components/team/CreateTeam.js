@@ -7,10 +7,12 @@ import { HOME } from '../../utils/path';
 import { TEAM_INVITATION_SUBJECT, TEAM_INVITATION_TEMPLATE } from '../../utils/template';
 import {  sendMail } from '../../reducers/email/emailSlice';
 import { useNavigate } from 'react-router-dom';
-import { isUserAlreadyExist, updateUser } from '../../reducers/auth/authSlice';
+import { getUserById, isUserAlreadyExist, updateUser } from '../../reducers/auth/authSlice';
 import { Close } from '@mui/icons-material';
 import SendIcon from '@mui/icons-material/Send';
 import { storage } from '../../services/firebase';
+import socket from '../../utils/socket';
+import { TEAM_UPDATED, USER_UPDATED } from '../../utils/socket-events';
 
 export default function CreateTeam() {
   
@@ -19,7 +21,7 @@ export default function CreateTeam() {
   const [emails, setEmails] = useState([]);
   const [email, setEmail] = useState('');
   const [createdTeamId, setCreatedTeamId] = useState('');
-  const [image, setImage] = useState(null);
+  const [file, setFile] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
 
 
@@ -93,13 +95,16 @@ export default function CreateTeam() {
 
         const team = await dispatch(getTeamById(createdTeamId));
 
-        await dispatch(updateTeam(
-          team._id,
-          {
-            pendingMembers: [...team.pendingMembers, response.user._id]
-          }
+        await dispatch(updateTeam(team._id, {
+          pendingMembers: [...team.pendingMembers, response.user._id]
+        }
         ));
+        
+        const updated_user = await dispatch(getUserById(response.user.uid));
+        socket.emit(USER_UPDATED, updated_user);
+        // socket.emit(TEAM_UPDATED, updated_team);
       }
+
 
       dispatch(updateMessage('Invitation sent....!'));
 
@@ -131,12 +136,12 @@ export default function CreateTeam() {
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
-      setImage(e.target.files[0]);
+      setFile(e.target.files[0]);
     }
   };
 
   const handleImageUpload = () => {
-    const uploadTask = storage.ref(`images/${image.name}`).put(image);
+    const uploadTask = storage.ref(`images/${file.name}`).put(file);
     uploadTask.on(
       'state_changed',
       (snapshot) => {
@@ -147,10 +152,9 @@ export default function CreateTeam() {
         console.error('Error uploading image:', error);
       },
       () => {
-        // Get download URL and set it to state
         storage
           .ref('images')
-          .child(image.name)
+          .child(file.name)
           .getDownloadURL()
           .then((url) => {
             setImageUrl(url);

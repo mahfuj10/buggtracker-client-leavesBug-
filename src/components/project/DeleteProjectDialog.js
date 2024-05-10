@@ -2,6 +2,8 @@ import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, B
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteProject, selectProject, setProject } from '../../reducers/project/projectSlice';
+import socket from '../../utils/socket';
+import { PROJECT_DELETED } from '../../utils/socket-events';
 
 export default function DeleteProjectDialog({open, toggleDialog = () => {}}) {
 
@@ -16,6 +18,8 @@ export default function DeleteProjectDialog({open, toggleDialog = () => {}}) {
       setIsLoading(true);
 
       await dispatch(deleteProject(currentProject._id));
+
+      socket.emit(PROJECT_DELETED, { projectId: currentProject._id });
 
       toggleDialog();
       dispatch(setProject({}));

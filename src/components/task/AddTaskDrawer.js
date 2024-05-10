@@ -13,11 +13,13 @@ import { Adjust, Close, Flag } from '@mui/icons-material';
 import { createTask } from '../../reducers/task/taskSlice';
 import CategoryIcon from '@mui/icons-material/Category';
 import { selectTeam } from '../../reducers/team/teamSlice';
+import socket from '../../utils/socket';
+import { NEW_TASK } from '../../utils/socket-events';
 
 const priorityList = [{name: 'low', color: 'silver'},{name: 'medium', color: ''},{name: 'high', color: '#FFD700'},{name: 'urgent', color: '#8B0000'}];
 const taskType = ['bug', 'feature', 'enhancement'];
 
-export default function AddTaskForm({ open, toggleDrawer = () => {} }) {
+export default function AddTaskDrawer({ open, toggleDrawer = () => {} }) {
  
   const dispatch = useDispatch();
   
@@ -82,7 +84,7 @@ export default function AddTaskForm({ open, toggleDrawer = () => {} }) {
         team_id: currentTeam._id
       };
 
-      const created_task = await dispatch(createTask(currentTeam.name, taskData));
+      const created_task = await dispatch(createTask(taskData));
 
       const sprintIndex = project.sprints?.findIndex(s => s._id === sprint._id);
     
@@ -91,6 +93,8 @@ export default function AddTaskForm({ open, toggleDrawer = () => {} }) {
       const updated_project = await dispatch(getProjectById(project._id));
       
       dispatch(setProject(updated_project));
+      
+      socket.emit(NEW_TASK, { sprintId: sprint._id, task: created_task, projectId: project._id });
     }catch(err) {
       console.error(err);
     }

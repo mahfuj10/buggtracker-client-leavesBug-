@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { Box, CircularProgress, Grid, IconButton, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Button,InputLabel, FormControl, MenuItem,Select, IconButton, Typography } from '@mui/material';
 import CreateProject from '../../components/project/CreateProject';
 import ProjectFlowStepper from '../../components/project/ProjectFlowStepper';
-import CreateProjectSprint from '../../components/project/sprint/CreateProjectSprint';
 import CheckIcon from '@mui/icons-material/Check';
-import CreateTask from '../../components/task/CreateTask';
-import { Close } from '@mui/icons-material';
+import { Add, DeleteOutline } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser } from '../../reducers/auth/authSlice';
-import { addProjectSprint, createProject as createProjectAPI, getProjectById as getProjectByIdAPI, updateProject, updateProjectSprint}  from '../../reducers/project/projectSlice';
-import { createTask } from '../../reducers/task/taskSlice';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import { createProject as createProjectAPI, selectProject, selectSprint, setProject, setSprint}  from '../../reducers/project/projectSlice';
 import { getTeamById, selectTeam, updateTeam } from '../../reducers/team/teamSlice';
 import NavigationTopbar from '../../components/common/navigation/NavigationTopbar';
 import socket from '../../utils/socket';
+import { PROJECT_UPDATED, TEAM_UPDATED } from '../../utils/socket-events';
+import AddSprintFormDrawer from '../../components/project/sprint/AddSprintFormDrawer';
+import AddTaskDrawer from '../../components/task/AddTaskDrawer';
+
 
 const iconBtnStyle = {
   width: '30px',
@@ -25,17 +25,35 @@ export default function Create() {
 
   const [selectedStep, setSelectedStep] = useState('create project'); // create project -> add project sprint -> create task -> complete
   const [activeStep, setActiveStep] = useState(-1);
-  const [isPreviewScreenOpen, setIsPreviewScreenOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState(['You can create a single sprint and task for a project.']);
   
-  const [createdProjectId, setCreatedProjectId] = useState('');
-  const [project, setProject] = useState({});
+  const [sprintDrawerOpen, setSprintDrawerOpen] = useState(false);
+  const [taskDrawerOpen, setOpenTaskDrawer] = useState(false);
   
   const dispatch = useDispatch();
   const currentLoginUser = useSelector(selectUser);
   const currentTeam = useSelector(selectTeam);
+  const currentProject = useSelector(selectProject);
+  const currentSprint = useSelector(selectSprint);
 
+  useEffect(() => {
+
+    socket.on(PROJECT_UPDATED, (project) => {
+      dispatch(setProject(project));
+      setActiveStep(2);
+    }); 
+
+    return () => {
+      socket.off(PROJECT_UPDATED);
+    };
+
+  }, [socket]);
+
+
+  useEffect(() => {
+    dispatch(setProject({}));
+    dispatch(setSprint({}));
+  }, []);
   
   const handleCreateProject = async(projectData) => {
     try { 
@@ -44,7 +62,8 @@ export default function Create() {
         description: projectData.description,
         start_date: projectData.startDate,
         target_end_date: projectData.targetEndDate,
-        team_id: currentTeam._id
+        team_id: currentTeam._id,
+        creator: currentLoginUser._id
       };
   
       if(!data.project_name) return;
@@ -54,201 +73,174 @@ export default function Create() {
       }
 
       setIsLoading(true);
-      setMessages(prev => [...prev, 'Creating project...']);
 
-      const res = await dispatch(createProjectAPI(data));
+      const created_project = await dispatch(createProjectAPI(data));
       const updated_team = await dispatch(getTeamById(currentTeam._id));
       
       // save project id into team.projects collection
-      await dispatch(updateTeam(currentTeam._id, {
-        projects: [...updated_team.projects, res._id]
+      const res = await dispatch(updateTeam(currentTeam._id, {
+        projects: [...updated_team.projects, created_project._id]
       }));
       
+      socket.emit(TEAM_UPDATED, res);
+
+      dispatch(setProject(created_project));
       setSelectedStep('add project sprint');
       setActiveStep(1);
-      setCreatedProjectId(res._id);
-      setMessages(prev => [...prev, 'Project created successfully.']);
     }catch(err){
       console.error(err);
-      setMessages(prev => [...prev, err?.message]);
     }
     setIsLoading(false);
   };
 
-  const handleAddSprint = async(sprintData) => {
-    try {
-      const data = {
-        start_date: sprintData.startDate,
-        target_end_date: sprintData.targetEndDate,
-        status: sprintData.allStatus,
-        name: sprintData.sprintName
-      };
-      
-      if(data.status.length < 1) return alert('add status');
-      
-      const project = await getProjectById(createdProjectId);
-      
-      if(project.start_date && data.start_date){
-        if(new Date(project.start_date) > new Date(data.start_date)) return alert('Sprint start date have to higher.');
-      }
-
-      if(data.target_end_date && data.start_date){
-        if(new Date(data.target_end_date) < new Date(data.start_date)) return alert('target end date should bigger than start date');
-      }
-
-      setIsLoading(true);
-      setMessages(prev => [...prev, 'Adding sprint into project.']);
-
-      const updated_project = await dispatch(addProjectSprint(project._id, data));
-
-      // send the updated project to all 
-      socket.emit('project_updated', updated_project);
-
-      setProject(updated_project);
-      setActiveStep(2);
-      setSelectedStep('create task');
-      setMessages(prev => [...prev, 'Sprint added succesfully.']);
-    }catch(err){
-      setMessages(prev => [...prev, err?.message]);
-    }
-    setIsLoading(false);
+  const toggleSprintDrawer = () => {
+    setSprintDrawerOpen(!sprintDrawerOpen);
   };
-
-  const handleCreateTask = async(task) => {
-    try{
-      if(!task.title?.trim()) return;
-
-      setIsLoading(true);
-      setMessages(prev => [...prev, 'Task creating...']);
-      console.log(task);
-      const res = await dispatch(createTask(currentTeam.name, task));
-      
-      const project_sprint = project.sprints && project.sprints[0];
-      
-      await dispatch(updateProjectSprint(project_sprint._id, {
-        tasks: [...project_sprint.tasks, res._id]
-      }));
-
-      setActiveStep(3);
-      setSelectedStep('complete');
-      setMessages(prev => [...prev, 'Task creating complete.']);
-      setMessages(prev => [...prev, '🎉 Congratulation, successfully created project']);
-    }catch(err){
-      console.error(err);
-      setMessages(prev => [...prev, err?.message]);
-    }
-    setIsLoading(false);
-  };
-
-  const getProjectById = async(id) => {
-    try{
-      if(!id) return;
-      const project = await dispatch(getProjectByIdAPI(id));
-      return project;
-    }catch(err){
-      return {};
-    }
+  
+  const toggleTaskDrawer = () => {
+    setOpenTaskDrawer(!taskDrawerOpen);
   };
 
   const handleReset = () => {
     setActiveStep(-1);
-    setMessages(['⟳ reset']);
-    setMessages(prev => [...prev, 'create another project.']);
     setSelectedStep('create project');
+    dispatch(setProject({}));
+    dispatch(setSprint({}));
   };
-
 
   const getClass = (step) => {
     if(selectedStep === step || selectedStep === '') {
       return { opacity: 1 , transition: '0.5s'};
     }
-    return { opacity: 0.4, pointerEvent:'none', transition: '0.5s' };
+    return { opacity: 0.4, pointerEvents:'none', transition: '0.5s' };
   };
 
   return (
-    <Box>
+    <Box width={'100%'}>
+     
+      
       <NavigationTopbar />
-      <Box m={2}>
-        <Box>
-          <ProjectFlowStepper
-            func={handleReset}
-            activeStep={activeStep}
-          />
+
+      <br />
+
+      <ProjectFlowStepper
+        func={handleReset}
+        activeStep={activeStep}
+      />
+
+      <Box mt={1} sx={getClass('create project')}>
+
+        <IconButton size='small'  sx={iconBtnStyle}>
+          { (selectedStep !== 'create project'  && activeStep > -1) ? <CheckIcon color='success' /> : '1' }
+        </IconButton>
+
+        <CreateProject
+          isLoading={isLoading}
+          handleCreateProject={handleCreateProject}
+        />
+      </Box>
+
+      
+      <Box 
+        sx={{ transition: '0.2s' }} 
+        visibility={currentProject._id ? 'visible' : 'hidden'} 
+        boxShadow={1} 
+        bgcolor={'white'} 
+        mt={2} 
+        px={2}
+        pb={2}
+        pt={4}
+      >
+
+        <Box display={'flex'} flexWrap={'wrap'} alignItems={'center'} columnGap={2} mb={2}>
+          {
+            (currentProject?.sprints || []).map(sprint => <Box
+              key={sprint._id} 
+              border={'1px solid #0000001f'} 
+              columnGap={1} p={1} 
+              borderRadius={1} 
+              display={'flex'} 
+              alignItems={'center'}
+            >
+              <Typography>{sprint.name}</Typography>
+              
+              <IconButton>
+                <DeleteOutline />
+              </IconButton>
+            </Box>)
+          }
         </Box>
 
-        <Grid container marginTop={4}>
-        
-          <Grid item xs={6} sx={getClass('create project')}>
-            <IconButton size='small'  sx={iconBtnStyle}>
-              { (selectedStep !== 'create project'  && activeStep > -1) ? <CheckIcon color='success' /> : '1' }
-            </IconButton>
+        <Button 
+          variant='outlined' 
+          sx={{ borderRadius: 0 }}
+          startIcon={<Add />}
+          onClick={toggleSprintDrawer}
+          color='success'
+        >
+            Add Sprint
+        </Button>
 
-            <CreateProject
-              isLoading={isLoading}
-              handleCreateProject={handleCreateProject}
-            />
-          </Grid>
-        
-          <Grid item xs={6} sx={getClass('add project sprint')}>
-            <IconButton size='small'  sx={iconBtnStyle}>
-              { (selectedStep !== 'add project sprint' && activeStep > 1) ? <CheckIcon color='success' /> : '2' }
-            </IconButton>
+        {
+          currentProject._id && <AddSprintFormDrawer
+            open={sprintDrawerOpen} 
+            project_id={currentProject._id} 
+            project_start_date={currentProject.start_date} 
+            toggleDrawer={toggleSprintDrawer} 
+          />}
+      </Box>
 
-            <CreateProjectSprint  
-              handleAddSprint={handleAddSprint}
-              isLoading={isLoading}
-            />
-          </Grid>
+      <Box 
+        visibility={ currentProject.sprints && currentProject.sprints.length ? 'visible' : 'hidden'}
+        sx={{ transition: '0.2s' }}
+        boxShadow={1}
+        bgcolor={'white'}
+        mt={2}
+        px={2}
+        pb={2}
+        pt={4}
+      >
+       
+        <FormControl fullWidth>
+          <InputLabel>Select Sprint</InputLabel>
+          <Select
+            value={currentSprint}
+            label="Sprint"
+            size='small'
+            onChange={e => dispatch(setSprint(e.target.value))}
+          >
+            {
+              (currentProject.sprints || []).map(sprint =>
+                <MenuItem key={sprint._id} value={sprint}>{sprint.name}</MenuItem>
+              )
+            }
+          </Select>
+        </FormControl>
 
-          <Grid item  xs={isPreviewScreenOpen ? 8 : 11} mt={5} sx={getClass('create task')}>
-            <IconButton size='small'  sx={iconBtnStyle}>
-              { (selectedStep !== 'create task' && activeStep > 2) ? <CheckIcon color='success' /> : '3' }
-            </IconButton>
 
-            <CreateTask 
-              project={project}
-              handleCreateTask={handleCreateTask}
-              isLoading={isLoading}
-            />
-          </Grid>
-
+        <Box my={3}>
           {
-            isPreviewScreenOpen &&
-          <Grid item xs={4}>
-            <Box boxShadow={1} minHeight={250} maxHeight={250} overflow='scroll' bgcolor='black' padding={1}>
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                <Typography borderBottom='1px dotted white' variant='caption' color='white'>
-                preview
-                </Typography>
-                <IconButton size='small' onClick={() => setIsPreviewScreenOpen(false)}>
-                  <Close color='primary'  />
-                </IconButton>
-              </Box>
-
-              {
-                messages.map((msg, i) =>  <Typography display='flex' alignItems='center' columnGap={1} key={i} variant='caption' color='white'>
-                  {isLoading && <CircularProgress sx={{color:'white'}} size={10} />}
-                  {msg}
-                </Typography>)
-              }
-            </Box>
-          </Grid>
+            (currentSprint.tasks || []).map(task => <Typography key={task._id}>{task.title}</Typography>)
           }
+        </Box>
 
-          {
-            !isPreviewScreenOpen &&  <Grid item xs={0.5}>
-              <IconButton
-                sx={{ bgcolor: 'white'}}
-                onClick={()=> setIsPreviewScreenOpen(true)}
-              >
-                <VisibilityIcon />
-              </IconButton>
-            </Grid>
-          }
- 
-        </Grid>
+        <Button
+          variant='outlined' 
+          color='success'
+          startIcon={<Add />}
+          onClick={toggleTaskDrawer}
+          sx={{ borderRadius: 0 }}
+        >
+          Add task
+        </Button>
+
+        <AddTaskDrawer
+          open={taskDrawerOpen}
+          toggleDrawer={toggleTaskDrawer}
+        />
 
       </Box>
+ 
     </Box>
   );
 }

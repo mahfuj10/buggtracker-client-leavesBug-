@@ -108,6 +108,7 @@ export default function NavigationSidebar() {
   const handleDrawer = () => {
     setOpen(!open);
   };
+
   
   return (
     <Box>
@@ -135,7 +136,7 @@ export default function NavigationSidebar() {
               <Tooltip title={currentTeam.name}>
                 <Typography variant='body1' fontWeight='bold'>
                   {
-                    currentTeam.name.length > 15 
+                    currentTeam.name?.length > 15 
                       ?
                       `${currentTeam.name.slice(0,14)}...` 
                       :

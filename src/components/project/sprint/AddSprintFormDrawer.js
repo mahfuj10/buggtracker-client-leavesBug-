@@ -1,15 +1,16 @@
 import { Box, Drawer, TextField, Typography, IconButton, Button, Chip, Divider } from '@mui/material';
 import FlagIcon from '@mui/icons-material/Flag';
 import CloseIcon from '@mui/icons-material/Close';
-import { Add, Check, Close, Edit, Send } from '@mui/icons-material';
+import { Add, Close, Send } from '@mui/icons-material';
 import React, { useState } from 'react';
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
 import { useUtils } from '../../../utils/useUtils';
 import { useDispatch } from 'react-redux';
 import { addProjectSprint } from '../../../reducers/project/projectSlice';
+import { PROJECT_UPDATED } from '../../../utils/socket-events';
 import socket from '../../../utils/socket';
+import dayjs from 'dayjs';
 
 export default function AddSprintFormDrawer({ open, toggleDrawer = () => {}, project_start_date = undefined, project_id }) {
 
@@ -119,10 +120,8 @@ export default function AddSprintFormDrawer({ open, toggleDrawer = () => {}, pro
         if(new Date(sprint_data.target_end_date) < new Date(sprint_data.start_date)) return alert('target end date should bigger than start date');
       }
 
-
-      console.log(startDate, targetEndDate);
       const updated_project = await dispatch(addProjectSprint(project_id, sprint_data));
-      socket.emit('project_updated', updated_project);
+      socket.emit(PROJECT_UPDATED, updated_project);
       
       toggleDrawer();
     }catch(err){

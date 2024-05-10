@@ -22,8 +22,6 @@ export default function TaskTable({ status }) {
     setOpen(!open);
   };
  
-  
-
   return (
     <>
       <TableContainer component={Box}>

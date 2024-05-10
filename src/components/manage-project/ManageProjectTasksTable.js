@@ -8,9 +8,12 @@ import TableRow from '@mui/material/TableRow';
 import Box from '@mui/material/Box';
 import { Avatar, Button, Checkbox, IconButton, Paper, Typography } from '@mui/material';
 import { useUtils } from '../../utils/useUtils';
+import { TASK_DELETED } from '../../utils/socket-events';
 import { DeleteOutline, Edit } from '@mui/icons-material';
 import AlertDialog from '../common/AlertDialog';
 import socket from '../../utils/socket';
+import { useSelector } from 'react-redux';
+import { selectProject, selectSprint } from '../../reducers/project/projectSlice';
 
 const cells = [
   'Task title',
@@ -19,15 +22,17 @@ const cells = [
   'Action'
 ];
   
-export default function ManageProjectTasksTable({ tasks, sprint }) {
+export default function ManageProjectTasksTable() {
 
   const [selectedTaskIds, setSelectedTaskIds] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   
+  const sprint = useSelector(selectSprint) ?? {};
+  const project = useSelector(selectProject);
   const { calculateDaysRemaining } = useUtils();
 
   const selectAll = () => {
-    const ids = tasks.map(task => task._id);
+    const ids = sprint.tasks.map(task => task._id);
     setSelectedTaskIds(ids);
   };
 
@@ -47,7 +52,13 @@ export default function ManageProjectTasksTable({ tasks, sprint }) {
   const handleDeleteTasks = async() => {
     try{
       // console.log('object');
-      // socket.emit('tasks-deleted', {});
+      const res =  socket.emit(TASK_DELETED, {
+        projectId: project._id,
+        sprintId: sprint._id,
+        taskIds: selectedTaskIds
+      });
+
+      console.log(res);
     }catch(err){
       console.log(err);
     }
@@ -58,7 +69,7 @@ export default function ManageProjectTasksTable({ tasks, sprint }) {
       <TableContainer component={Paper}>
 
         <Box pt={1} px={1} display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
-          <Typography variant='body2'>Task assoicate with <b>{sprint.name}</b></Typography>
+          <Typography variant='body2'>Task assoicate with <b>{ sprint.name}</b></Typography>
 
           <Button 
             sx={{ opacity: selectedTaskIds.length ? 1 : 0 }} 
@@ -68,7 +79,7 @@ export default function ManageProjectTasksTable({ tasks, sprint }) {
             startIcon={<DeleteOutline />}
             onClick={toggleDialog}
           >
-          Delete
+           Delete
           </Button>
         </Box>
 
@@ -90,7 +101,7 @@ export default function ManageProjectTasksTable({ tasks, sprint }) {
               </TableCell>
 
               {
-                cells.map(cell => <TableCell key={cell}>
+                cells.map((cell, i) => <TableCell key={`${cell}-${i}`}>
                   {cell}
                 </TableCell>)
               }
@@ -99,9 +110,9 @@ export default function ManageProjectTasksTable({ tasks, sprint }) {
 
           <TableBody>
             { 
-              tasks 
+              sprint.tasks 
             && 
-            tasks.map(task => <TableRow key={task._id}>
+            sprint.tasks.map((task,i) => <TableRow key={`${task._id}-${i}`}>
               <TableCell  component="th" scope="row">
                 <Checkbox
                   checked={selectedTaskIds.includes(task._id)}
