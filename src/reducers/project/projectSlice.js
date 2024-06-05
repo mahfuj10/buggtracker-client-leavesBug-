@@ -98,7 +98,7 @@ export const addTaskIntoSprint = (projectId, taskId, sprintIndex) => async () =>
 
 export const getProjectById = (id) => async () =>  {
   try{
-    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/project?id=${id}`);
+    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/project/get?id=${id}`);
 
     return response.data;
   }catch(err){
@@ -118,7 +118,7 @@ export const saveDrawing = (data) => async () =>  {
 
 export const getDrawing = (projectId) => async () =>  {
   try{
-    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/whiteboard?id=${projectId}`);
+    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/whiteboard/get?id=${projectId}`);
 
     return response.data;
   }catch(err){
@@ -148,7 +148,7 @@ export const updateNote = (noteId, doc) => async () =>  {
 
 export const getNotes = (projectId) => async () =>  {
   try{
-    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/notes?id=${projectId}`);
+    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/notes/get?id=${projectId}`);
 
     return response.data;
   }catch(err){
