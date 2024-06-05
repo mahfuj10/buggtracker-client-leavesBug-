@@ -9,6 +9,7 @@ const PROJECT = '/project';
 const MANAGE_PROJECT = '/manage-project';
 const MANAGE_TEAM = '/manage-team';
 const ME = '/me';
+const CHAT = '/chat';
 const SETTING = '/setting';
 
 module.exports = {
@@ -23,5 +24,6 @@ module.exports = {
   MANAGE_PROJECT,
   MANAGE_TEAM,
   ME,
-  SETTING
+  SETTING,
+  CHAT
 };

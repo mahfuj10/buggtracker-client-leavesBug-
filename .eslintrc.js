@@ -16,7 +16,8 @@ module.exports = {
     'react'
   ],
   'globals': {
-    'Promise': 'readonly'
+    'Promise': 'readonly',
+    '_': 'readonly'
   },
   'rules': {
     'react/prop-types': 'off', // Disable react/prop-types rule

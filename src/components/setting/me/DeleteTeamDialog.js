@@ -5,6 +5,8 @@ import { deleteTeamAndReferences, selectTeam, updateTeamState } from '../../../r
 import { selectUser } from '../../../reducers/auth/authSlice';
 import { sendMail } from '../../../reducers/email/emailSlice';
 import { TEAM_DELETE_CONFIRMATION_SUBJECT, TEAM_DELETE_CONFIRMATION_TEMPLATE } from '../../../utils/template';
+import socket from '../../../utils/socket';
+import { TEAM_DELETED } from '../../../utils/socket-events';
 
 export default function DeleteTeamDialog({ open, toggleDialog = () => {}, selectedTeam }) {
 
@@ -23,7 +25,7 @@ export default function DeleteTeamDialog({ open, toggleDialog = () => {}, select
       await dispatch(deleteTeamAndReferences(selectedTeam._id));
 
       if(currentTeam._id === selectedTeam._id && currentLoginUser.teamJoined?.length > 1){
-        await  dispatch(updateTeamState(currentLoginUser.teamJoined[0]._id));
+        await dispatch(updateTeamState(currentLoginUser.teamJoined[0]._id));
       }
 
       // send to group creator
@@ -34,6 +36,18 @@ export default function DeleteTeamDialog({ open, toggleDialog = () => {}, select
       }));
 
       // also send to admins
+      for(const admin of selectedTeam.admins){
+        await dispatch(sendMail({
+          email: admin.email,
+          subject: `Email for team admin - ${TEAM_DELETE_CONFIRMATION_SUBJECT}`,
+          template:  TEAM_DELETE_CONFIRMATION_TEMPLATE(selectedTeam.name, selectedTeam.createor.name, selectedTeam.createor.email)
+        }));
+
+      }
+
+      socket.emit(TEAM_DELETED, { 
+        teamId: selectedTeam._id
+      });
     }catch(err){
       console.error(err);
     }
@@ -72,12 +86,12 @@ export default function DeleteTeamDialog({ open, toggleDialog = () => {}, select
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={toggleDialog} color='success'>Close</Button>
+        <Button onClick={toggleDialog} disabled={isLoading} color='success'>Close</Button>
         {isLoading && 'loading...'}
         <Button 
           autoFocus
           color='error'
-          disabled={teamName !== selectedTeam.name}
+          disabled={teamName !== selectedTeam.name || isLoading}
           onClick={deleteTeam}
         >
             Delete

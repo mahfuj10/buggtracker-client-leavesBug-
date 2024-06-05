@@ -109,6 +109,7 @@ export default function AddSprintFormDrawer({ open, toggleDrawer = () => {}, pro
   const handleAddSprint = async() => {
     try{
       if(!project_id) return alert('Project id not found 404.');
+      if(!sprint.name?.trim()) return;
 
       const sprint_data = {
         ...sprint,
@@ -318,6 +319,7 @@ export default function AddSprintFormDrawer({ open, toggleDrawer = () => {}, pro
           size='small'
           startIcon={<Add />}
           onClick={handleAddSprint}
+          disabled={Boolean(!sprint.status.length) || Boolean(!sprint.priorities.length)}
         >
             Add Sprint
         </Button>

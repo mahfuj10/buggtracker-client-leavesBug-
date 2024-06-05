@@ -6,11 +6,11 @@ import CheckIcon from '@mui/icons-material/Check';
 import { Add, DeleteOutline } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser } from '../../reducers/auth/authSlice';
-import { createProject as createProjectAPI, selectProject, selectSprint, setProject, setSprint}  from '../../reducers/project/projectSlice';
+import { createProject as createProjectAPI }  from '../../reducers/project/projectSlice';
 import { getTeamById, selectTeam, updateTeam } from '../../reducers/team/teamSlice';
 import NavigationTopbar from '../../components/common/navigation/NavigationTopbar';
 import socket from '../../utils/socket';
-import { PROJECT_UPDATED, TEAM_UPDATED } from '../../utils/socket-events';
+import { NEW_TASK, PROJECT_UPDATED, TEAM_UPDATED } from '../../utils/socket-events';
 import AddSprintFormDrawer from '../../components/project/sprint/AddSprintFormDrawer';
 import AddTaskDrawer from '../../components/task/AddTaskDrawer';
 
@@ -23,6 +23,8 @@ const iconBtnStyle = {
 
 export default function Create() {
 
+  const [project, setProject] = useState({});
+  const [sprint, setSprint] = useState({});
   const [selectedStep, setSelectedStep] = useState('create project'); // create project -> add project sprint -> create task -> complete
   const [activeStep, setActiveStep] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,27 +35,48 @@ export default function Create() {
   const dispatch = useDispatch();
   const currentLoginUser = useSelector(selectUser);
   const currentTeam = useSelector(selectTeam);
-  const currentProject = useSelector(selectProject);
-  const currentSprint = useSelector(selectSprint);
 
   useEffect(() => {
-
-    socket.on(PROJECT_UPDATED, (project) => {
-      dispatch(setProject(project));
+    socket.on(PROJECT_UPDATED, (updatedProject) => {
+      setProject(updatedProject);
       setActiveStep(2);
+      if(updatedProject.sprints?.length && !sprint._id){
+        setSprint(updatedProject.sprints[0]);
+      }
     }); 
 
     return () => {
       socket.off(PROJECT_UPDATED);
     };
-
   }, [socket]);
 
+ 
 
   useEffect(() => {
-    dispatch(setProject({}));
-    dispatch(setSprint({}));
-  }, []);
+    socket.on(NEW_TASK, async({ task, sprintId }) => {
+
+      const sprintIndex = project.sprints?.findIndex(sprint => sprint._id === sprintId);
+
+      if (sprintIndex !== -1 && project && project._id) {
+        const updatedSprints = [...project.sprints];
+        updatedSprints[sprintIndex] = {
+          ...updatedSprints[sprintIndex],
+          tasks: [...updatedSprints[sprintIndex].tasks, task]
+        };
+        const sprint = updatedSprints.find(sprint => sprint._id === sprintId);
+
+        setProject({ ...project, sprints: updatedSprints });
+          
+        if(sprint._id === sprintId){
+          setSprint(sprint);
+        }
+      }
+    });
+
+    return () => {
+      socket.off(NEW_TASK);
+    };
+  },[socket, project, sprint]);
   
   const handleCreateProject = async(projectData) => {
     try { 
@@ -84,7 +107,7 @@ export default function Create() {
       
       socket.emit(TEAM_UPDATED, res);
 
-      dispatch(setProject(created_project));
+      setProject(created_project);
       setSelectedStep('add project sprint');
       setActiveStep(1);
     }catch(err){
@@ -104,8 +127,8 @@ export default function Create() {
   const handleReset = () => {
     setActiveStep(-1);
     setSelectedStep('create project');
-    dispatch(setProject({}));
-    dispatch(setSprint({}));
+    setProject({});
+    setSprint({});
   };
 
   const getClass = (step) => {
@@ -143,7 +166,7 @@ export default function Create() {
       
       <Box 
         sx={{ transition: '0.2s' }} 
-        visibility={currentProject._id ? 'visible' : 'hidden'} 
+        visibility={project._id ? 'visible' : 'hidden'} 
         boxShadow={1} 
         bgcolor={'white'} 
         mt={2} 
@@ -154,7 +177,7 @@ export default function Create() {
 
         <Box display={'flex'} flexWrap={'wrap'} alignItems={'center'} columnGap={2} mb={2}>
           {
-            (currentProject?.sprints || []).map(sprint => <Box
+            (project.sprints || []).map(sprint => <Box
               key={sprint._id} 
               border={'1px solid #0000001f'} 
               columnGap={1} p={1} 
@@ -182,16 +205,16 @@ export default function Create() {
         </Button>
 
         {
-          currentProject._id && <AddSprintFormDrawer
+          project._id && <AddSprintFormDrawer
             open={sprintDrawerOpen} 
-            project_id={currentProject._id} 
-            project_start_date={currentProject.start_date} 
+            project_id={project._id} 
+            project_start_date={project.start_date} 
             toggleDrawer={toggleSprintDrawer} 
           />}
       </Box>
 
       <Box 
-        visibility={ currentProject.sprints && currentProject.sprints.length ? 'visible' : 'hidden'}
+        visibility={ project.sprints && project.sprints.length ? 'visible' : 'hidden'}
         sx={{ transition: '0.2s' }}
         boxShadow={1}
         bgcolor={'white'}
@@ -204,13 +227,13 @@ export default function Create() {
         <FormControl fullWidth>
           <InputLabel>Select Sprint</InputLabel>
           <Select
-            value={currentSprint}
+            value={sprint}
             label="Sprint"
             size='small'
-            onChange={e => dispatch(setSprint(e.target.value))}
+            onChange={e => setSprint(e.target.value)}
           >
             {
-              (currentProject.sprints || []).map(sprint =>
+              (project.sprints || []).map(sprint =>
                 <MenuItem key={sprint._id} value={sprint}>{sprint.name}</MenuItem>
               )
             }
@@ -218,9 +241,17 @@ export default function Create() {
         </FormControl>
 
 
-        <Box my={3}>
+        <Box my={2}>
           {
-            (currentSprint.tasks || []).map(task => <Typography key={task._id}>{task.title}</Typography>)
+            (sprint.tasks || []).map(task => <Typography
+              key={task._id}
+              p={1}
+              mb={1}
+              borderLeft={'2px solid #656f7d'}
+              bgcolor={'#e0e0e0'}
+            >
+              {task.title}
+            </Typography>)
           }
         </Box>
 
@@ -233,12 +264,16 @@ export default function Create() {
         >
           Add task
         </Button>
-
+        
+        {
+          sprint._id &&
         <AddTaskDrawer
           open={taskDrawerOpen}
           toggleDrawer={toggleTaskDrawer}
+          sprint={sprint}
+          project={project}
         />
-
+        }
       </Box>
  
     </Box>

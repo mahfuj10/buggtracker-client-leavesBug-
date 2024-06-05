@@ -1,16 +1,15 @@
 import { Avatar, Box, IconButton, Menu, MenuItem } from '@mui/material';
-import React, { useState } from 'react';
+import React from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import { useSelector } from 'react-redux';
 import { selectTeam } from '../../reducers/team/teamSlice';
 
-export default function TaskAssignDropdown({ assigns, setAssigns }) {
+export default function TaskAssignDropdown({ assigns, setAssigns, size = 40 }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
-  const [selectedMembers, setSelectedMembers] = useState([]);
 
   const currentTeam = useSelector(selectTeam);
-
+ 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -21,22 +20,31 @@ export default function TaskAssignDropdown({ assigns, setAssigns }) {
 
   const addMemeber = (member) => {
     if(!assigns.includes(member._id)){
-      setAssigns(prev => [...prev, member._id]);
-      setSelectedMembers(prev => [...prev, member]);
+      setAssigns([...assigns, member._id]);
     }
     handleClose();
   };
-   
-    
+
+  const removeMember = (memberId) => {
+    const reminingMembers = assigns.filter(id => id !== memberId);
+    setAssigns(reminingMembers);
+  };
+  
+  const getMember = (memberId) => {
+    return currentTeam.members.find(member => member._id === memberId) || {};
+  };
+
   return (
 
     <>
-      <Box display='flex' alignItems='center' columnGap={2}>
+      <Box display='flex' alignItems='center' columnGap={1}>
         {
-          selectedMembers.map(member => <Avatar 
-            key={member._id}
-            src={member.photoURL}
-            sx={{ width: 40, height: 40 }} 
+          assigns.map(memberId => getMember(memberId).uid &&  <Avatar 
+            key={memberId}
+            src={getMember(memberId).photoURL}
+            sx={{ width: size, height: size, ':hover': { opacity: 0.2 }, transition: '0.5s' }} 
+            onClick={() => removeMember(memberId)}
+            className='cursor-pointer'
           />
           )
         }
@@ -47,7 +55,7 @@ export default function TaskAssignDropdown({ assigns, setAssigns }) {
           aria-haspopup="true"
           aria-expanded={open ? 'true' : undefined}
         >
-          <Avatar sx={{ width: 40, height: 40 }}>
+          <Avatar sx={{ width: size, height: size }}>
             <AddIcon />
           </Avatar>
         </IconButton>

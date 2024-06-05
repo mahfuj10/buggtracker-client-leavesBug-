@@ -1,33 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser, signOut } from '../reducers/auth/authSlice';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { setUser } from '../reducers/auth/authSlice';
+import { Outlet } from 'react-router-dom';
 import NavigationSidebar from '../components/common/navigation/NavigationSidebar';
-import { Box, Divider } from '@mui/material';
+import { Box } from '@mui/material';
 import NoTeamFound from '../components/common/NoTeamFound';
 import { selectTeam } from '../reducers/team/teamSlice';
+import socket from '../utils/socket';
+import { USER_UPDATED } from '../utils/socket-events';
+import Whiteboard from '../components/whiteboard/Whiteboard';
 
 export default function Home() {
   const dispatch = useDispatch();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const currentLoginUser = useSelector(selectUser);
   const currentTeam = useSelector(selectTeam);
 
+   
+  useEffect(() => {
+    socket.on(USER_UPDATED, (data ) => {
+      console.log('user updated from socket', data);
+      dispatch(setUser(data));
+    });
+  },[socket]);
+  
   return (
     <>
+      {/* testing */}
+      {/* <Whiteboard /> */}
       {
-        currentLoginUser && currentLoginUser.teamJoined && (currentLoginUser.teamJoined.length < 1 || !currentTeam?._id) 
+        !currentTeam?._id
           ?
           <Box>
             <NoTeamFound />
           </Box>
           :
           <Box display='flex'>
-
             <NavigationSidebar />
-
+            
             <Outlet />
+
 
           </Box>
       }

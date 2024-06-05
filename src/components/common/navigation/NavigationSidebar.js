@@ -85,7 +85,8 @@ const nav_items = [
   },
   {
     title: 'Messages',
-    icon: MapsUgcIcon
+    icon: MapsUgcIcon,
+    path: '/chat'
   },
   {
     title: 'Settings',
@@ -94,8 +95,7 @@ const nav_items = [
   },
   {
     title: 'Help Center',
-    icon: SupportAgentIcon,
-    path:'/a'
+    icon: SupportAgentIcon
   }
 ];
 
@@ -130,7 +130,7 @@ export default function NavigationSidebar() {
             columnGap={1}
           >
             {
-              currentTeam.logo && <img alt='logo' src={currentTeam.logo} style={{ borderRadius: 5}} width={50} />
+              currentTeam.logo && <img alt='logo' src={currentTeam.logo} style={{ borderRadius: 5}} width={60} />
             }
             <Box>
               <Tooltip title={currentTeam.name}>

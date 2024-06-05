@@ -1,36 +1,31 @@
-import React, { useRef, useState } from 'react';
-import { TextField, Box, Avatar, IconButton, Button, Typography, Chip, Grid } from '@mui/material';
-import { useSelector } from 'react-redux';
-import { selectTeam, setTeam, updateTeam } from '../../../reducers/team/teamSlice';
+import React, { useEffect, useRef, useState } from 'react';
+import { TextField, Box, Avatar, IconButton, Button, Typography, Chip } from '@mui/material';
+import { updateTeam } from '../../../reducers/team/teamSlice';
 import { Close, FileUpload, Save } from '@mui/icons-material';
 import { useUtils } from '../../../utils/useUtils';
 import { storage } from '../../../services/firebase';
-import ShareButton from '../../common/ShareButton';
 import { useDispatch } from 'react-redux';
-import { updateUser } from '../../../reducers/auth/authSlice';
+import socket from '../../../utils/socket';
+import { TEAM_UPDATED, TEAM_UPDATED_GLOBAL } from '../../../utils/socket-events';
 
-export default function TeamProfile() {
-  const currentTeam = useSelector(selectTeam);
-
+export default function TeamProfile({ team }) {
   const [newImageURL, setNewImageURL] = useState('');
-  const [initialLogo, setInitialLogo] = useState(currentTeam?.logo);
-  const [name, setName] = useState(currentTeam?.name);
-  const [description, setDescription] = useState(currentTeam?.description);
+  const [initialLogo, setInitialLogo] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const fileInput = useRef(null);
 
-  
-  const { getCreatedDate } = useUtils();
-
+  const { getCreatedDate, getFileName } = useUtils();
   const dispatch = useDispatch();
 
-  const getImageNameFromURL = (imageUrl) => {
-    const urlParts = imageUrl.split('%2F'); // Split by "%2F" to get the image name
-    const lastPart = urlParts[urlParts.length - 1]; // Last part after splitting
-    const imageName = lastPart.split('?')[0]; // Remove query parameters, if any
-    return imageName;
-  };
-
+  useEffect(() => {
+    if(team){
+      setInitialLogo(team.logo);
+      setName(team.name);
+      setDescription(team.description);
+    }
+  }, [team]);
 
   const deleteImage = async (imageName) => {
     try {
@@ -78,12 +73,12 @@ export default function TeamProfile() {
 
       if(newImageURL){
         setNewImageURL('');
-        await deleteImage(getImageNameFromURL(newImageURL));
+        await deleteImage(getFileName(newImageURL));
       }
   
       if(initialLogo){
         setInitialLogo('');
-        await deleteImage(getImageNameFromURL(initialLogo));
+        await deleteImage(getFileName(initialLogo));
       }
     }catch(err){
       console.error(err);
@@ -95,18 +90,14 @@ export default function TeamProfile() {
     try{
       setIsLoading(true);
 
-      await dispatch(updateTeam(currentTeam._id, {
+      const updated_team = await dispatch(updateTeam(team._id, {
         logo: newImageURL || initialLogo,
         name: name,
         description: description
       }));
 
-      dispatch(setTeam({
-        ...currentTeam,
-        logo: newImageURL || initialLogo,
-        name: name,
-        description: description
-      }));
+      socket.emit(TEAM_UPDATED, updated_team);
+      socket.emit(TEAM_UPDATED_GLOBAL, updated_team);
     }catch(err){
       console.error(err);
     }
@@ -116,7 +107,6 @@ export default function TeamProfile() {
   const openFile = () => {
     fileInput && fileInput.current.click();
   };
-
 
   return (
     <>
@@ -137,6 +127,7 @@ export default function TeamProfile() {
             style={{ position: 'absolute', visibility:'hidden' }} 
             ref={fileInput}
             type='file'
+            accept="image/*"
             onChange={e => handleImageUpload(e)}
           />
 
@@ -154,7 +145,7 @@ export default function TeamProfile() {
         </Box>
 
         <TextField 
-          defaultValue={name}
+          value={name}
           onChange={e => setName(e.target.value)}
           fullWidth
           label="Team Name (Mandatory)"
@@ -166,20 +157,20 @@ export default function TeamProfile() {
           fullWidth
           multiline
           rows={3}
-          defaultValue={description}
+          value={description}
           onChange={e => setDescription(e.target.value)}
         />
       
-        <Typography variant='body2'>Created on {getCreatedDate(currentTeam.createdAt)}</Typography>
+        <Typography variant='body2'>Created on {getCreatedDate(team.createdAt)}</Typography>
         
         <Box>
             Created by
           <Chip
             sx={{ ml: 1 }}
             size='small'
-            title={currentTeam.createor.email}
-            avatar={<Avatar alt={currentTeam.createor.name} src={currentTeam.createor.photoURL} />}
-            label={currentTeam.createor.name}
+            title={team.createor.email}
+            avatar={<Avatar alt={team.createor.name} src={team.createor.photoURL} />}
+            label={team.createor.name}
             variant="outlined"
           />
         </Box>
@@ -194,7 +185,7 @@ export default function TeamProfile() {
         size='small' 
         color='success'
         onClick={handleSave}
-        sx={{borderRadius: 0.5, mt: 2}}
+        sx={{borderRadius: 0.5, mt: 2, px: 5}}
         disabled={isLoading}
       >
             save

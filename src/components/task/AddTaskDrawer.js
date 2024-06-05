@@ -2,34 +2,33 @@ import { Box, Button, Chip, Drawer, IconButton,  TextField, Typography } from '@
 import React, { useEffect, useState } from 'react';
 import QuillEditor from '../quill/QuillEditor';
 import { useDispatch, useSelector } from 'react-redux';
-import { addTaskIntoSprint, getProjectById, selectProject, selectSprint, selectTask, setProject } from '../../reducers/project/projectSlice';
+import { addTaskIntoSprint, getProjectById, selectTask, setProject } from '../../reducers/project/projectSlice';
 import { selectUser } from '../../reducers/auth/authSlice';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import TaskAssignDropdown from './TaskAssignDropdown';
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useUtils } from '../../utils/useUtils';
-import { Adjust, Close, Flag } from '@mui/icons-material';
+import { Adjust, CalendarMonth, Close, Flag } from '@mui/icons-material';
 import { createTask } from '../../reducers/task/taskSlice';
 import CategoryIcon from '@mui/icons-material/Category';
 import { selectTeam } from '../../reducers/team/teamSlice';
 import socket from '../../utils/socket';
 import { NEW_TASK } from '../../utils/socket-events';
+import dayjs from 'dayjs';
 
 const priorityList = [{name: 'low', color: 'silver'},{name: 'medium', color: ''},{name: 'high', color: '#FFD700'},{name: 'urgent', color: '#8B0000'}];
 const taskType = ['bug', 'feature', 'enhancement'];
 
-export default function AddTaskDrawer({ open, toggleDrawer = () => {} }) {
+export default function AddTaskDrawer({ open, sprint, project, toggleDrawer = () => {}, dueDate: initialDueDate = null }) {
  
   const dispatch = useDispatch();
   
-  const sprint = useSelector(selectSprint);
-  const project = useSelector(selectProject);
   const task = useSelector(selectTask);
   const currentLoginUser = useSelector(selectUser);
   const currentTeam = useSelector(selectTeam);
   
-  const { formatDate } = useUtils();
+  const { formatDate, displayDueDate } = useUtils();
 
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState({});
@@ -41,12 +40,23 @@ export default function AddTaskDrawer({ open, toggleDrawer = () => {} }) {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [openDatePicker, setOpenDatePicker] = useState(false);
+
   useEffect(() => {
     if(task && task.status && task.status.name){
       setStatus(task.status);
+    }else if(sprint && sprint.status && sprint.status.length) {
+      setStatus(sprint.status[0]);
     }
-  }, [task.status]);
+  }, [task]);
+
+  useEffect(() => {
+    setDueDate(initialDueDate);
+  },[initialDueDate]);
+
+  const updateDescription = (e) => {
+    setDescription(e);
+  };
   
   const handleTagInputChange = (event) => {
     setTagInput(event.target.value);
@@ -64,6 +74,9 @@ export default function AddTaskDrawer({ open, toggleDrawer = () => {} }) {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
+  const toggleDatePicker = () => {
+    setOpenDatePicker(!openDatePicker);
+  };
 
   const handleCreateTask = async() => {
     try {
@@ -95,12 +108,13 @@ export default function AddTaskDrawer({ open, toggleDrawer = () => {} }) {
       dispatch(setProject(updated_project));
       
       socket.emit(NEW_TASK, { sprintId: sprint._id, task: created_task, projectId: project._id });
+
+      toggleDrawer();
     }catch(err) {
       console.error(err);
     }
     setIsLoading(false);
   };
-
 
   return (
     <Drawer anchor="right" open={open} onClose={() => toggleDrawer()}>
@@ -205,12 +219,34 @@ export default function AddTaskDrawer({ open, toggleDrawer = () => {} }) {
             />
           </Box>
 
-          <Box>
-            <Typography mb={0.5} display='block' color='#565656' variant='body'> Due date </Typography>
+          <Box position={'relative'}>
+            <Typography mb={0.5} display='block' color='#565656' variant='body'>
+               Due date
+            </Typography>
+
+            {
+              dueDate ?
+                <Chip
+                  label={displayDueDate(dueDate)}
+                  size='small'
+                  clickable
+                  variant='outlined'
+                  onClick={toggleDatePicker}
+                />
+                :
+                <IconButton onClick={toggleDatePicker}> 
+                  <CalendarMonth />
+                </IconButton>
+            }
+
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DesktopDatePicker
-                sx={{width: 150, height: 20}}
-                onChange={e => setDueDate(formatDate(e.$d))} 
+                open={openDatePicker}
+                onOpen={toggleDatePicker}
+                onClose={toggleDatePicker}
+                defaultValue={dayjs(dueDate)}
+                onChange={(e) => setDueDate(formatDate(e.$d))}
+                sx={{ position: 'absolute', opacity: 0,  left: 0, zIndex: -1 }}
               />
             </LocalizationProvider>
           </Box>
@@ -255,7 +291,7 @@ export default function AddTaskDrawer({ open, toggleDrawer = () => {} }) {
 
           <QuillEditor
             value={description}
-            func={setDescription}
+            onChange={updateDescription}
           />
         </Box>
 

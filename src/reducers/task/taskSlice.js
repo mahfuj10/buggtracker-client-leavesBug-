@@ -19,3 +19,13 @@ export const updateTask = (id, data) => async () =>  {
     return err;
   }
 };
+
+export const deleteTasks = (ids) => async () =>  {
+  try{
+    const response = await axios.delete(`${process.env.REACT_APP_SERVER_BASE_URL}/task/delete?ids=${ids.join(',')}`);
+  
+    return response.data;
+  }catch(err){
+    return err;
+  }
+};

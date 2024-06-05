@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { deleteProjectSprint, getProjectById, selectProject, selectSprint, setProject, setSprint, updateProject, updateProjectSprint } from '../../../reducers/project/projectSlice';
+import { deleteProjectSprint, getProjectById, updateProject, updateProjectSprint } from '../../../reducers/project/projectSlice';
 import { useParams } from 'react-router';
 import Loader from '../../../components/common/Loader/Loader';
 import { useDispatch } from 'react-redux';
@@ -17,10 +17,10 @@ import socket from '../../../utils/socket';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AlertDialog from '../../../components/common/AlertDialog';
-import DeleteProjectDialog from '../../../components/project/DeleteProjectDialog';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import ManageProjectTasksTable from '../../../components/manage-project/ManageProjectTasksTable';
-import { useSelector } from 'react-redux';
+import { PROJECT_UPDATED } from '../../../utils/socket-events';
+import DeleteProjectDialog from '../../../components/project/DeleteProjectDialog';
 
 const btn = {
   boxShadow: 0,
@@ -43,11 +43,11 @@ export default function ManageProject() {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openDeleteSprintDialog, setOpenDeleteSprintDialog] = useState(false);
   const [openDeleteProjectDialog, setOpenDeleteProjectDialog] = useState(false);
+  const [project, setProject] = useState({});
+  const [sprint, setSprint] = useState({});
 
   const { id } = useParams();
   const dispatch = useDispatch();
-  const project = useSelector(selectProject);
-  const sprint = useSelector(selectSprint);
   
   const { getCreatedDate, formatDate, calculateDaysRemaining } = useUtils();
 
@@ -59,10 +59,10 @@ export default function ManageProject() {
 
         const response = await dispatch(getProjectById(id));
         
-        dispatch(setProject(response));
+        setProject(response);
         
         if(response.sprints && response.sprints[0]){
-          dispatch(setSprint(response.sprints[0]));
+          setSprint(response.sprints[0]);
         }
       }catch(err){
         console.error(err);
@@ -74,12 +74,12 @@ export default function ManageProject() {
   }, [id]);
 
   useEffect(() => {
-    socket.on('project_updated', (updated_project) => {
+    socket.on(PROJECT_UPDATED, (updated_project) => {
       if(updated_project._id === id){
-        dispatch(setProject(updated_project));
-        if(updated_project.sprints && updated_project.sprints[0]){
-          dispatch(setSprint(updated_project.sprints[0]));
-        }
+        setProject(updated_project);
+        // if(updated_project.sprints && updated_project.sprints[0]){
+        //   setSprint(updated_project.sprints[0]);
+        // }
       }
     });
   }, [socket]);
@@ -88,14 +88,18 @@ export default function ManageProject() {
     return <Loader />;
   }
 
+  const updateSprint = (updated_sprint) => {
+    setSprint(updated_sprint);
+  };
+
   const addPriority = () => {
     if(!priority.name.trim()) return;
     if(sprint && sprint.priorities.map(priority => priority.name).includes(priority.name)) return;
 
-    dispatch(setSprint({
+    setSprint({
       ...sprint,
       priorities: [...sprint.priorities, priority]
-    }));
+    });
     
     setPriority({
       ...priority,
@@ -105,17 +109,17 @@ export default function ManageProject() {
   
   const removePriority = (index) => {
     const updatedPriorities = sprint.priorities.filter((_, i) => i !== index);
-    dispatch(setSprint({ ...sprint, priorities: updatedPriorities }));
+    setSprint({ ...sprint, priorities: updatedPriorities });
   };
     
   const addStatus = () => {
     if(!status.name.trim()) return;
     if(sprint && sprint.status.map(status => status.name).includes(status.name)) return;
     
-    dispatch(setSprint({
+    setSprint({
       ...sprint,
       status: [...sprint.status, status]
-    }));
+    });
         
     setStatus({
       ...status,
@@ -125,27 +129,27 @@ export default function ManageProject() {
       
   const removeStatus = (index) => {
     const updatedStatus = sprint.status.filter((_, i) => i !== index);
-    dispatch(setSprint({ ...sprint, status: updatedStatus }));
+    setSprint({ ...sprint, status: updatedStatus });
   };
 
   const deleteTaskType = (index) => {
     const updatedTaskTypes = sprint.task_types.filter((_, i) => i !== index);
-    dispatch(setSprint({ ...sprint, task_types: updatedTaskTypes }));
+    setSprint({ ...sprint, task_types: updatedTaskTypes });
   };
 
   const addTaskType = () => {
     if(sprint.task_types && sprint.task_types.includes(typeInput.toLowerCase())) return;
 
-    dispatch(setSprint({
+    setSprint({
       ...sprint,
       task_types: [...sprint.task_types, typeInput.toLowerCase()]
-    }));
+    });
 
     setTypeInput('');
   };
   
   const handleSprintNameChange = (e) => {
-    dispatch(setSprint({ ...sprint, name: e.target.value }));
+    setSprint({ ...sprint, name: e.target.value });
   };
 
   const toggleDrawer = () => {
@@ -181,23 +185,23 @@ export default function ManageProject() {
 
     updatedStatus.splice(destination.index, 0, draggedStatus);
 
-    dispatch(setSprint({
+    setSprint({
       ...sprint,
       status: updatedStatus,
-    }));
+    });
   };
 
   const handleSave = async() => {
     try {
       setIsCRUDLoading(true);
 
-      await dispatch(updateProject(project._id, { // will return prev project
+      await dispatch(updateProject(project._id, {
         project_name: project.project_name,
         start_date: project.start_date,
         target_end_date: project.target_end_date,
       }));
 
-      if(sprint && sprint._id){
+      if(sprint && sprint._id && sprint.name && sprint.status.length && sprint.priorities.length){
         await dispatch(updateProjectSprint(sprint._id, {
           name: sprint.name,
           status: sprint.status,
@@ -211,7 +215,7 @@ export default function ManageProject() {
 
       const updated_project = await dispatch(getProjectById(project._id));
       
-      socket.emit('project_updated', updated_project);
+      socket.emit(PROJECT_UPDATED, updated_project);
     }catch(err){
       console.error(err);
     }
@@ -223,9 +227,13 @@ export default function ManageProject() {
       setIsCRUDLoading(true);
       toggleDeleteSprintDialog();
 
-      const updated_project = await dispatch(deleteProjectSprint(sprint._id));
+      await dispatch(deleteProjectSprint(sprint._id));
+      const remining_sprints = project.sprints.filter(s => s._id !== sprint._id);
 
-      socket.emit('project_updated', updated_project);
+      setProject({...project, sprints: remining_sprints});
+      setSprint(remining_sprints.length ? remining_sprints[0] : {});
+
+      socket.emit(PROJECT_UPDATED, {...project, sprints: remining_sprints});
     }catch(err){
       console.error(err);
     }
@@ -237,9 +245,15 @@ export default function ManageProject() {
   return (
     <Box width={'100%'}>
       <NavigationTopbar />
+      
       <LinearProgress sx={{ height: 1.2, opacity: isCRUDLoading ? 1 : 0 }}  />
 
+      <Typography variant='caption' pl={1}>
+          This is an private page, for testing purpose you can test it.
+      </Typography>
+
       <Grid container columnSpacing={2} bgcolor={'white'} mt={1}>
+
         <Grid item xs={6.7}>
 
           <Box p={2} display={'flex'} flexDirection={'column'} rowGap={3}>
@@ -250,7 +264,7 @@ export default function ManageProject() {
               fullWidth
               label="Project Name *"
               variant="outlined"
-              onChange={e => dispatch(setProject({...project, project_name: e.target.value}))}
+              onChange={e => setProject({...project, project_name: e.target.value})}
             />
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -259,7 +273,7 @@ export default function ManageProject() {
                   label='Start date'
                   onChange={e => {
                     setDate({...date, projectStartDate: formatDate(e.$d)}),
-                    dispatch(setProject({...project, start_date: formatDate(e.$d)}));
+                    setProject({...project, start_date: formatDate(e.$d)});
                   }} 
                   disablePast
                   value={dayjs(project.start_date)}
@@ -270,7 +284,7 @@ export default function ManageProject() {
                   label='Target end date'
                   onChange={e => {
                     setDate({...date, projectTargetEndDate: formatDate(e.$d)}),
-                    dispatch(setProject({...project, target_end_date: formatDate(e.$d)}));
+                    setProject({...project, target_end_date: formatDate(e.$d)});
                   }} 
                   minDate={dayjs(project.start_date)} 
                   value={dayjs(project.target_end_date)}
@@ -328,7 +342,13 @@ export default function ManageProject() {
 
           </Box>
 
-          <ManageProjectTasksTable />
+          <Box width={'100%'}>
+            <ManageProjectTasksTable
+              project={project}
+              sprint={sprint}
+              updateSprint={updateSprint}
+            />
+          </Box>
           <br />
 
         </Grid>
@@ -349,7 +369,7 @@ export default function ManageProject() {
                   variant="outlined"
                   onDelete={toggleDeleteSprintDialog}
                   deleteIcon={<DeleteOutline />}
-                  onClick={() => dispatch(setSprint(item))}
+                  onClick={() => setSprint(item)}
                 />
               </Box>)
             }
@@ -545,7 +565,7 @@ export default function ManageProject() {
 
                   <DesktopDatePicker
                     label='Start date'
-                    onChange={e => dispatch(setSprint({...sprint, start_date: formatDate(e.$d)}))} 
+                    onChange={e => setSprint({...sprint, start_date: formatDate(e.$d)})} 
                     disablePast
                     value={dayjs(sprint.start_date)}
                     minDate={dayjs(date.projectStartDate || formatDate(new Date()))}
@@ -555,7 +575,7 @@ export default function ManageProject() {
                   <DesktopDatePicker 
                     disablePast
                     label='Target end date'
-                    onChange={e => dispatch(setSprint({...sprint, target_end_date: formatDate(e.$d)}))} 
+                    onChange={e => setSprint({...sprint, target_end_date: formatDate(e.$d)})} 
                     value={dayjs(sprint.target_end_date)}
                     minDate={dayjs(sprint.start_date || project.start_date)} 
                     maxDate={dayjs(date.projectTargetEndDate)}
@@ -566,7 +586,7 @@ export default function ManageProject() {
               <Box m={1} mb={2} display={'flex'} alignItems={'center'} columnGap={1}>
                 <input 
                   style={{ display:'block' }}
-                  onChange={e => dispatch(setSprint({...sprint, is_complete: e.target.checked }))} 
+                  onChange={e => setSprint({...sprint, is_complete: e.target.checked })} 
                   type="checkbox" defaultChecked={sprint.is_complete} />
               
                 <label style={{ display:'block' }}> Is sprint complete ?</label>
@@ -601,6 +621,7 @@ export default function ManageProject() {
       <DeleteProjectDialog
         open={openDeleteProjectDialog}
         toggleDialog={toggleDeleteProjectDialog}
+        project={project}
       />
     </Box>
   );

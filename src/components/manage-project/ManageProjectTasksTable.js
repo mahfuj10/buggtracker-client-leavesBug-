@@ -1,35 +1,71 @@
-import React, { useState } from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Box from '@mui/material/Box';
-import { Avatar, Button, Checkbox, IconButton, Paper, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box,  Button, Checkbox, Chip,IconButton, InputBase, Paper, Typography } from '@mui/material';
 import { useUtils } from '../../utils/useUtils';
-import { TASK_DELETED } from '../../utils/socket-events';
-import { DeleteOutline, Edit } from '@mui/icons-material';
+import { NEW_TASK, TASK_DELETED, TASK_UPDATED } from '../../utils/socket-events';
+import { Add, CalendarMonth, DeleteOutline } from '@mui/icons-material';
 import AlertDialog from '../common/AlertDialog';
 import socket from '../../utils/socket';
-import { useSelector } from 'react-redux';
-import { selectProject, selectSprint } from '../../reducers/project/projectSlice';
+import { useDispatch } from 'react-redux';
+import { deleteTasks, updateTask } from '../../reducers/task/taskSlice';
+import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import AddTaskDrawer from '../task/AddTaskDrawer';
+import UpdateTaskPriority from './UpdateTaskPriority';
+import UpdateTaskAssigns from './UpdateTaskAssigns';
+import UpdateTaskStatus from './UpdateTaskStatus';
+import { getProjectById } from '../../reducers/project/projectSlice';
 
 const cells = [
   'Task title',
   'Assignes',
   'Due date',
-  'Action'
+  'Status',
+  'Priority'
 ];
   
-export default function ManageProjectTasksTable() {
+export default function ManageProjectTasksTable({ project, sprint, updateSprint = () => {} }) {
 
   const [selectedTaskIds, setSelectedTaskIds] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const [openStates, setOpenStates] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   
-  const sprint = useSelector(selectSprint) ?? {};
-  const project = useSelector(selectProject);
-  const { calculateDaysRemaining } = useUtils();
+  const { calculateDaysRemaining, formatDate } = useUtils();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    socket.on(NEW_TASK, async({ projectId, sprintId }) => {
+      if (project._id === projectId){
+        const updated_project = await dispatch(getProjectById(projectId));
+        const sprintIndex = updated_project.sprints.findIndex(s => s._id === sprintId);
+
+        project.sprints = updated_project.sprints;
+        updateSprint(updated_project.sprints[sprintIndex]);
+      }
+    });
+
+    socket.on(TASK_UPDATED, async({ task, sprintId }) => {
+      const sprintIndex = (project.sprints || []).findIndex(s => s._id === sprintId);
+
+      if (sprintIndex !== -1) {
+        const updatedSprints = [...project.sprints];
+        const taskIndex = updatedSprints[sprintIndex].tasks.findIndex(({_id}) => _id === task._id);
+
+        updatedSprints[sprintIndex].tasks[taskIndex] = task;
+        project.sprints =  updatedSprints;
+
+        updateSprint({...sprint, tasks: [...updatedSprints[sprintIndex].tasks]});
+      }
+    });
+
+    return () => {
+      socket.off(NEW_TASK);
+      socket.off(TASK_UPDATED);
+    };
+
+  }, [socket]);
 
   const selectAll = () => {
     const ids = sprint.tasks.map(task => task._id);
@@ -44,24 +80,100 @@ export default function ManageProjectTasksTable() {
       setSelectedTaskIds(selectedTaskIds.filter(id => id !== taskId));
     }
   };
-
+ 
   const toggleDialog = () => {
     setOpenDialog(!openDialog);
+  };
+ 
+  const toggleDrawer = () => {
+    setOpenDrawer(!openDrawer);
+  };
+  
+  const toggleOpen = (taskId, isOpen) => {
+    setOpenStates(prevOpenStates => ({
+      ...prevOpenStates,
+      [taskId]: isOpen,
+    }));
   };
 
   const handleDeleteTasks = async() => {
     try{
-      // console.log('object');
-      const res =  socket.emit(TASK_DELETED, {
+      if(selectedTaskIds.length === 0) return ;
+
+      setIsLoading(true);
+
+      toggleDialog();
+
+      await dispatch(deleteTasks(selectedTaskIds));
+
+      const remainingTasks = sprint.tasks.filter(task => !selectedTaskIds.includes(task._id));
+      sprint.tasks = remainingTasks;
+
+      socket.emit(TASK_DELETED, {
         projectId: project._id,
         sprintId: sprint._id,
         taskIds: selectedTaskIds
       });
 
-      console.log(res);
     }catch(err){
       console.log(err);
     }
+    setIsLoading(false);
+  };
+
+  const handleUpdateTask = async(taskId, doc) => {
+    try{
+      if(!taskId) return;
+
+      await dispatch(updateTask(taskId, doc));
+
+    }catch(err){
+      console.error(err);
+    }
+  };
+
+  const saveDueDate = (taskId, date) => {
+    const index = sprint.tasks.findIndex(task => task._id === taskId);
+
+    if(index !== -1){
+      sprint.tasks[index].due_date =  date;
+    }
+      
+    handleUpdateTask(taskId, { due_date: date });
+  };
+
+  const updatePriority = (task, priority) => {
+    const index = sprint.tasks.findIndex(task => task._id === task._id);
+
+    if(index !== -1){
+      sprint.tasks[index] = {...sprint.tasks[index], priority };
+    }
+
+    handleUpdateTask(task._id, { priority });
+  };
+
+  const handleChangeTitle = (taskId, updateTitle) => {
+    const tasks  = sprint.tasks.map(task =>
+      task._id === taskId ? { ...task, title: updateTitle } : task
+    );
+    
+    updateSprint({...sprint, tasks });
+    
+    const delayDebounceFn = setTimeout(() => {
+      if(!updateTitle) return;
+
+      handleUpdateTask(taskId, { title: updateTitle });
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  };
+
+  const updateAssigns = (task, assigns) => {
+    handleUpdateTask(task._id, { assigns });
+  };
+
+  const updateStatus = (task, status) => {
+    handleUpdateTask(task._id, { status });
   };
 
   return (
@@ -71,19 +183,32 @@ export default function ManageProjectTasksTable() {
         <Box pt={1} px={1} display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
           <Typography variant='body2'>Task assoicate with <b>{ sprint.name}</b></Typography>
 
-          <Button 
-            sx={{ opacity: selectedTaskIds.length ? 1 : 0 }} 
-            variant='outlined' 
-            color='error' 
-            size='small' 
-            startIcon={<DeleteOutline />}
-            onClick={toggleDialog}
-          >
-           Delete
-          </Button>
+          <Box>
+            <Button 
+              sx={{ opacity: selectedTaskIds.length ? 1 : 0, mr: 1 }} 
+              variant='outlined' 
+              color='error' 
+              size='small' 
+              startIcon={<DeleteOutline />}
+              disabled={isLoading}
+              onClick={toggleDialog}
+            >
+              Delete
+            </Button>
+
+            <Button 
+              variant='outlined' 
+              color='success' 
+              size='small' 
+              startIcon={<Add />}
+              onClick={toggleDrawer}
+            >
+              Add Task
+            </Button>
+          </Box>
         </Box>
 
-        <Table>
+        <Table sx={{ minWidth: 950 }}>
           <TableHead>
             <TableRow>
           
@@ -108,65 +233,89 @@ export default function ManageProjectTasksTable() {
             </TableRow>
           </TableHead>
 
+
           <TableBody>
+
+
+            {
+              sprint && sprint.tasks?.length === 0 && 
+            <TableRow>
+              <TableCell component="th" scope="row" colSpan={12}>
+                <Typography> No any tasks. </Typography>
+              </TableCell>
+            </TableRow>
+            }
+
             { 
-              sprint.tasks 
-            && 
-            sprint.tasks.map((task,i) => <TableRow key={`${task._id}-${i}`}>
-              <TableCell  component="th" scope="row">
-                <Checkbox
-                  checked={selectedTaskIds.includes(task._id)}
-                  onChange={(e) => handleSelectTask(e.target.checked, task._id)}
-                  color="primary"
-                />
-              </TableCell>
+              (sprint.tasks || []).map((task,i) => task._id && <TableRow key={`${task._id}-${i}`}>
+                <TableCell  component="th" scope="row">
+                  <Checkbox
+                    checked={selectedTaskIds.includes(task._id)}
+                    onChange={(e) => handleSelectTask(e.target.checked, task._id)}
+                    color="primary"
+                  />
+                </TableCell>
               
-              <TableCell  component="th" scope="row">{task.title}</TableCell>
+                <TableCell  component="th" scope="row">
+                  <InputBase
+                    value={task.title} 
+                    onChange={e => handleChangeTitle(task._id, e.target.value)}
+                    size='small' 
+                  />
+                </TableCell>
               
-              <TableCell  component="th" scope="row">
-                {
-                  task.assigns?.length ?
-                    <Box display="flex" alignItems="center" columnGap={0.5}>
-                      { 
-                        task.assigns.map((assign) => (
-                          <Avatar
-                            key={assign._id}
-                            sx={{ width: 25, height: 25 }}
-                            alt={assign.name}
-                            src={assign.photoURL}
-                          />
-                        ))
-                      }
-                    </Box>
-                    : 
-                    'not asssign'    
-                }
-              </TableCell>
+                <TableCell  component="th" scope="row">
+                  <UpdateTaskAssigns 
+                    task={task}
+                    updateAssigns={updateAssigns}
+                  />
+                </TableCell>
 
-              <TableCell  component="th" scope="row">
-                {
-                  task.due_date ?
-                    <Box display={'flex'} alignItems={'center'} columnGap={1}>
-                      <IconButton size='small' sx={{ border: '1px dashed black' , width: 25, height: 25 }}>
-                        { calculateDaysRemaining(new Date(), task.due_date) }
+                <TableCell  component="th" scope="row" sx={{position:'relative'}}>
+                  {
+                    task.due_date ?
+                      <Chip
+                        label={`${calculateDaysRemaining(new Date(), task.due_date)} days left`}
+                        size='small'
+                        clickable
+                        variant='outlined'
+                        onClick={() => toggleOpen(task._id, true)}
+                      />
+                      :
+                      <IconButton onClick={() => toggleOpen(task._id, true)}> 
+                        <CalendarMonth />
                       </IconButton>
-                    days
-                    </Box>
-                    :
-                    'no due date'
-                }
-              </TableCell>
+                  }
 
-              <TableCell>
-                <IconButton size='small' sx={{ width: 20, height: 20, }}>
-                  <DeleteOutline />
-                </IconButton>
-                <IconButton size='small' sx={{ width: 20, height: 20, ml: 1 }}>
-                  <Edit />
-                </IconButton>
-              </TableCell>
+                  <LocalizationProvider key={task._id} dateAdapter={AdapterDayjs}>
+                    <DesktopDatePicker
+                      open={openStates[task._id] || false}
+                      onOpen={() => toggleOpen(task._id, true)}
+                      onClose={() => toggleOpen(task._id, false)}
+                      defaultValue={dayjs(task.due_date)}
+                      onChange={(e) => saveDueDate(task._id, formatDate(e.$d))}
+                      sx={{ position: 'absolute', left: 0, zIndex: -1 }}
+                    />
+                  </LocalizationProvider>
+                </TableCell>
 
-            </TableRow>)
+                <TableCell  component="th" scope="row">
+                  <UpdateTaskStatus 
+                    status={sprint.status}
+                    task={task} 
+                    updateStatus={updateStatus}
+                  />
+                </TableCell>
+
+                <TableCell>
+                  <UpdateTaskPriority 
+                    priorities={sprint.priorities} 
+                    task={task}
+                    updatePriority={updatePriority}
+                  />
+                </TableCell>
+
+              </TableRow>)
             }
           </TableBody>
 
@@ -180,6 +329,14 @@ export default function ManageProjectTasksTable() {
         title={'Are you sure you?'}
         toggleDialog={toggleDialog}
         toggleConfirm={handleDeleteTasks}
+      />
+
+      {/* add task drawer */}
+      <AddTaskDrawer
+        open={openDrawer}
+        toggleDrawer={toggleDrawer}
+        project={project}
+        sprint={sprint}
       />
     </>
   );

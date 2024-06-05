@@ -1,15 +1,14 @@
 import { Alert, Avatar, Box, Button, Chip, IconButton, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createTeam, getTeamById, selectTeam, setLoading, updateMessage, updateTeam } from '../../reducers/team/teamSlice';
+import { createTeam, getTeamById, setLoading, updateMessage, updateTeam } from '../../reducers/team/teamSlice';
 import { useUtils } from '../../utils/useUtils';
 import { HOME } from '../../utils/path';
 import { TEAM_INVITATION_SUBJECT, TEAM_INVITATION_TEMPLATE } from '../../utils/template';
 import {  sendMail } from '../../reducers/email/emailSlice';
 import { useNavigate } from 'react-router-dom';
-import { getUserById, isUserAlreadyExist, updateUser } from '../../reducers/auth/authSlice';
-import { Close } from '@mui/icons-material';
-import SendIcon from '@mui/icons-material/Send';
+import { isUserAlreadyExist, updateUser } from '../../reducers/auth/authSlice';
+import { Add, Close } from '@mui/icons-material';
 import { storage } from '../../services/firebase';
 import socket from '../../utils/socket';
 import { TEAM_UPDATED, USER_UPDATED } from '../../utils/socket-events';
@@ -86,7 +85,7 @@ export default function CreateTeam() {
       const response = await dispatch(isUserAlreadyExist(email));
 
       if(response.exists){
-        await dispatch(updateUser(
+        const updated_user = await dispatch(updateUser(
           response.user._id, 
           {
             teamInvited: [...response.user.teamInvited, createdTeamId]
@@ -95,14 +94,13 @@ export default function CreateTeam() {
 
         const team = await dispatch(getTeamById(createdTeamId));
 
-        await dispatch(updateTeam(team._id, {
+        const updated_team =   await dispatch(updateTeam(team._id, {
           pendingMembers: [...team.pendingMembers, response.user._id]
         }
         ));
         
-        const updated_user = await dispatch(getUserById(response.user.uid));
         socket.emit(USER_UPDATED, updated_user);
-        // socket.emit(TEAM_UPDATED, updated_team);
+        socket.emit(TEAM_UPDATED, updated_team);
       }
 
 
@@ -175,7 +173,7 @@ export default function CreateTeam() {
           </Typography>
           
           <Box >
-            <input type="file" onChange={handleImageChange} />
+            <input type="file" accept="image/*" onChange={handleImageChange} />
             <button onClick={handleImageUpload}>Upload Image</button>
 
             {/* <CircularProgressWithLabel value={progress} /> */}
@@ -232,7 +230,7 @@ export default function CreateTeam() {
             InputProps={{
               endAdornment: (
                 <IconButton onClick={() => addEmail()}>
-                  <SendIcon />
+                  <Add />
                 </IconButton>
               ),
             }}

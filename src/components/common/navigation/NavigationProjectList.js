@@ -5,15 +5,20 @@ import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
 import { selectTeam } from '../../../reducers/team/teamSlice';
 import { useSelector } from 'react-redux';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { CREATE_PROJECT, MANAGE_PROJECT, PROJECT } from '../../../utils/path';
 import { Add, Settings } from '@mui/icons-material';
 import { Box } from '@mui/system';
+import { selectAdmin, selectTeamCreator } from '../../../reducers/auth/authSlice';
 
 export default function NavigationProjectList({ open = false }) {
   
   const currentTeam = useSelector(selectTeam);
+  const isTeamAdmin = useSelector(selectAdmin);
+  const isTeamCreator = useSelector(selectTeamCreator);
+
   const navigate = useNavigate();
+  const { id } = useParams();
   
   return (
     <Accordion disableGutters
@@ -56,11 +61,12 @@ export default function NavigationProjectList({ open = false }) {
 
       <AccordionDetails sx={{ mt: -2, backgroundColor:'#f5f7fd'}}>
         {
-          (currentTeam.projects || []).map(project => <ListItemButton key={project._id}
+          (currentTeam.projects || []).map(project => project.project_name && <ListItemButton
+            key={project._id}
             sx={{
               ml: 4,
               height:40,
-              borderLeft:'1px solid #656f7d',
+              borderLeft:  id === project._id ? '2px solid black' : '1px solid #656f7d',
               '&:hover': {
                 backgroundColor: '#f5f7fd'
               }
@@ -74,14 +80,29 @@ export default function NavigationProjectList({ open = false }) {
                 mr: 'auto',
                 justifyContent: 'center'
               }}>
-              <InsertDriveFileIcon sx={{ fontSize: 14}} />
+
+              <InsertDriveFileIcon 
+                sx={{ 
+                  fontSize: 14, 
+                  color: id === project._id ? 'black' : 'default' 
+                }} 
+              />
+
             </ListItemIcon>
           
             <ListItemText sx={{ ml: 1, '&:hover .settingsIcon': { opacity: 1 } }}> 
-              <Box fontSize={12} display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
+              <Box
+                fontSize={12}
+                display={'flex'} 
+                alignItems={'center'} 
+                justifyContent={'space-between'}
+                fontWeight={id === project._id ? 'bold' : ''}
+              >
 
                 {project.project_name} 
 
+                {
+                  (isTeamAdmin || isTeamCreator) &&
                 <IconButton size='small' 
                   onClick={(e) => {
                     e.stopPropagation(),
@@ -89,6 +110,7 @@ export default function NavigationProjectList({ open = false }) {
                   }}>
                   <Settings className="settingsIcon" sx={{ opacity: 0, fontSize: 14 }}  />
                 </IconButton>
+                }
 
               </Box> 
             </ListItemText>

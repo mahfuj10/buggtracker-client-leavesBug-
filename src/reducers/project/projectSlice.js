@@ -106,6 +106,66 @@ export const getProjectById = (id) => async () =>  {
   }
 };
 
+export const saveDrawing = (data) => async () =>  {
+  try{
+    const response = await axios.post(`${process.env.REACT_APP_SERVER_BASE_URL}/whiteboard/save`, data);
+
+    return response.data;
+  }catch(err){
+    return err;
+  }
+};
+
+export const getDrawing = (projectId) => async () =>  {
+  try{
+    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/whiteboard?id=${projectId}`);
+
+    return response.data;
+  }catch(err){
+    return err;
+  }
+};
+
+export const createNote = (data) => async () =>  {
+  try{
+    const response = await axios.post(`${process.env.REACT_APP_SERVER_BASE_URL}/notes/create`, data);
+
+    return response.data;
+  }catch(err){
+    return err;
+  }
+};
+
+export const updateNote = (noteId, doc) => async () =>  {
+  try{
+    const response = await axios.put(`${process.env.REACT_APP_SERVER_BASE_URL}/notes/update?id=${noteId}`, doc);
+
+    return response.data;
+  }catch(err){
+    return err;
+  }
+};
+
+export const getNotes = (projectId) => async () =>  {
+  try{
+    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/notes?id=${projectId}`);
+
+    return response.data;
+  }catch(err){
+    return err;
+  }
+};
+
+export const deleteNote = (noteId) => async () =>  {
+  try{
+    const response = await axios.delete(`${process.env.REACT_APP_SERVER_BASE_URL}/notes/delete?id=${noteId}`);
+
+    return response.data;
+  }catch(err){
+    return err;
+  }
+};
+
 export const { setProject, setSprint, setTask, setDragging } = projectSlice.actions;
 
 export const selectProject = (state) => state.project.selectedProject;

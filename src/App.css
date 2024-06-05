@@ -36,3 +36,49 @@
 .login-button a:hover {
     background-color: #0056b3;
 }
+
+.quill-no-border .ql-container.ql-snow{ border: none !important;}
+.quill-no-border .ql-toolbar.ql-snow {border: none !important}
+
+
+.chat-container {
+height: calc(100vh - 100px);
+  }
+  
+
+.chat-box {
+    display: flex;
+    height: 100%;
+  }
+
+
+.sidebar {
+    flex: 0 0 250px; /* Sidebar width, adjust as needed */
+    background-color: #f4f4f4;
+    height: 100%;
+    overflow-y: auto; /* Enable scrolling if content overflows */
+  }
+  
+  .chat-area {
+    flex: 1; /* Chat area takes remaining space */
+    background-color: #fff;
+    height: 100%;
+  }
+  .messages-container{
+    margin: 10px;
+    height: calc(100% - 60px);
+  }
+  .text-break {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1; /* number of lines to show */
+            line-clamp: 1; 
+    -webkit-box-orient: vertical;
+ }
+  .text-break-task-description {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* number of lines to show */
+            line-clamp: 3; 
+    -webkit-box-orient: vertical;
+ }

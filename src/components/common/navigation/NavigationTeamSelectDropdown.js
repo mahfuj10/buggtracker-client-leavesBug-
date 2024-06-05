@@ -53,10 +53,10 @@ export default function NavigationTeamSelectDropdown() {
         }}
       >
         {
-          (currentLoginUser.teamJoined || []).map(team => <MenuItem 
+          (currentLoginUser.teamJoined || []).map((team,i) => <MenuItem 
             disabled={team._id === currentTeam._id}
             sx={{ borderBottom: '1px solid whitesmoke' }} 
-            key={team._id}
+            key={`${team._id}_${i}`}
             onClick={() => handleSwitchTeam(team)}
           >
 

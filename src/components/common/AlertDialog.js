@@ -15,7 +15,7 @@ export default function AlertDialog({ open, toggleDialog = () => {}, toggleConfi
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">
+      <DialogTitle id="alert-dialog-title" sx={{minWidth: 320}}>
         {title}
       </DialogTitle>
       <DialogContent>

@@ -45,11 +45,11 @@ export default function NoTeamFound() {
           {
             currentLoginUser.teamInvited && currentLoginUser.teamInvited.length > 0 &&
             <Box>
-              <Typography variant='body2' mt={2}>
+              {/* <Typography variant='body2' mt={2}>
               You have following invitaion to join team
-              </Typography>
+              </Typography> */}
     
-              <TeamInvited />
+              {/* <TeamInvited /> */}
             </Box>
           }
         </Box>

@@ -1,11 +1,11 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import { initAuthListener, selectIsInitialized, selectUser, setUser } from './reducers/auth/authSlice';
+import { initAuthListener, selectIsInitialized, selectUser, setAdmin, setUser } from './reducers/auth/authSlice';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import PrivateRoute from './components/private/PrivateRoute';
-import { LOGIN, REGISTER, HOME, RESET_PASSWORD, CREATE_TEAM, PENDING_INVITE, CREATE_PROJECT, PROJECT, SETTING, ME, MANAGE_PROJECT, MANAGE_TEAM } from './utils/path';
+import { LOGIN, REGISTER, HOME, RESET_PASSWORD, CREATE_TEAM, PENDING_INVITE, CREATE_PROJECT, PROJECT, SETTING, ME, MANAGE_PROJECT, MANAGE_TEAM, CHAT } from './utils/path';
 import socket from './utils/socket.js';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
@@ -14,13 +14,14 @@ import CreateProject from './pages/project/Create.js';
 import Project from './pages/project/Project.js';
 import Invite from './pages/invite/Invite.js';
 import Loader from './components/common/Loader/Loader.js';
-import { selectTeam, setTeam } from './reducers/team/teamSlice.js';
+import { getTeamById, selectTeam, setTeam } from './reducers/team/teamSlice.js';
 import Setting from './pages/setting/Setting.js';
 import Me from './pages/setting/me/Me.js';
 import ManageProject from './pages/setting/manage-project/ManageProject.js';
-import { TASK_DELETED, TEAM_UPDATED, USER_UPDATED } from './utils/socket-events.js';
-import { selectProject, selectSprint, setProject, setSprint } from './reducers/project/projectSlice.js';
+import { REMOVE_MEMBER_FROM_TEAM, TASK_DELETED, TEAM_DELETED, TEAM_UPDATED } from './utils/socket-events.js';
+import { selectProject, selectSprint, setSprint } from './reducers/project/projectSlice.js';
 import ManageTeam from './pages/manage-team/ManageTeam.js';
+import Chat from './pages/chat/Chat.js';
 
 function App() {
 
@@ -38,9 +39,11 @@ function App() {
     return unsubscribe;
   },[dispatch]);
 
+
+  
   useEffect(() => {
     if(currentTeam.name){
-      socket.emit('joinRoom', currentTeam.name, currentLoginUser.email);
+      socket.emit('joinRoom', currentTeam.name);
     }
 
     socket.on('connect', () => {
@@ -56,58 +59,80 @@ function App() {
   useEffect(() => {
     socket.on(TEAM_UPDATED, (team) => {
       const initialTeamId = localStorage.getItem('team_id');
+
       if(initialTeamId === team._id){
         dispatch(setTeam(team));
       }
+
       if(!initialTeamId){
         dispatch(setTeam(team));
       }
+
+      if((team.admins || []).findIndex(admin => admin._id === currentLoginUser._id) !== -1){
+        dispatch(setAdmin(true));
+      } else {
+        dispatch(setAdmin(false));
+      }
     });
     
-    socket.on(TASK_DELETED, (data) => {
-      if(currentProject._id === data.projectId){
-        console.log('1');
-        if(currentSprint._id === data.sprintId){
-          console.log('2');
-          const remainingTasks = currentSprint.tasks.filter(task => !data.taskIds.includes(task._id));
-          dispatch(setSprint({...currentSprint, tasks: remainingTasks}));
-        } else {
-          console.log('3');
-          // const remainingTasks = currentSprint.tasks.filter(task => !data.taskIds.includes(task._id));
-          // console.log(remainingTasks);
-          // const sprintIndex = currentProject.sprints.findIndex(sprint => sprint._id === data.sprintId);
-          // console.log(sprintIndex);
-          // currentProject.sprints[sprintIndex] = {...currentProject.sprints[sprintIndex], tasks: remainingTasks};
+    if(currentLoginUser){
+      const userId = `${currentLoginUser.email}_A`;
+      socket.emit('userId', userId);
+    }
 
-          // dispatch(setProject({...currentProject}));
-          // const sprintIndex = currentProject.sprints.findIndex(sprint => sprint._id === data.sprintId);
-          // console.log(sprintIndex);
-          // if (sprintIndex !== -1) {
-          //   const updatedSprints = [...currentProject.sprints]; // Create a copy of the sprints array
-          //   const remainingTasks = updatedSprints[sprintIndex].tasks.filter(task => !data.taskIds.includes(task._id));
-          //   updatedSprints[sprintIndex] = { ...updatedSprints[sprintIndex], tasks: remainingTasks };
-          //   dispatch(setProject({ ...currentProject, sprints: updatedSprints }));
-          // } else {
-          //   console.log('Sprint not found in current project');
-          // }
+    socket.on(REMOVE_MEMBER_FROM_TEAM, (data) => {
+      if(currentLoginUser?._id === data.userId){
+        const remining_teams = currentLoginUser.teamJoined.filter(team => team._id !== data.teamId);
+        if(!remining_teams.length){
+          localStorage.removeItem('team_id');
+          dispatch(setTeam({}));
+        } else {
+          localStorage.setItem('team_id', remining_teams[0]._id);
+          fetchTeam(remining_teams[0]._id);   
         }
+        dispatch(setUser({
+          ...currentLoginUser,
+          teamJoined: remining_teams
+        }));
       }
-      console.log('task del from socket', data);
+    });
+
+    socket.on(TEAM_DELETED, data => {
+      if(currentLoginUser){
+        const remining_teams = currentLoginUser.teamJoined.filter(team => team._id !== data.teamId);
+        if(!remining_teams.length){
+          localStorage.removeItem('team_id');
+          dispatch(setTeam({}));
+        } else {
+          localStorage.setItem('team_id', remining_teams[0]._id);
+          fetchTeam(remining_teams[0]._id);          
+        }
+        dispatch(setUser({
+          ...currentLoginUser,
+          teamJoined: remining_teams
+        }));
+      }
     });
 
     return () => {
-      socket.off('update_team');
-      socket.off(TASK_DELETED);
+      socket.off(TEAM_UPDATED);
+      socket.off(TEAM_DELETED);
+      socket.off(REMOVE_MEMBER_FROM_TEAM);
     };
-  }, [socket]);
+  }, [socket, currentLoginUser]);
 
+
+  const fetchTeam = async(teamId) => {
+    const team = await dispatch(getTeamById(teamId));
+    dispatch(setTeam(team));
+  };
 
   if(!isInitialized){
     return <Loader />;
   }
 
-  console.log('currentLoginUser', currentLoginUser);
-  console.log('currentTeam', currentTeam);
+  // console.log('currentLoginUser', currentLoginUser);
+  // console.log('currentTeam', currentTeam);
   
   return (
     <Router>
@@ -121,6 +146,7 @@ function App() {
           <Route path={`${PROJECT}/:id`} element={<Project /> } />
           <Route path={SETTING} element={<Setting /> } />
           <Route path={ME} element={<Me /> } />
+          <Route path={CHAT} element={<Chat /> } />
           <Route path={`${MANAGE_PROJECT}/:id`} element={<ManageProject /> } />
           <Route path={`${MANAGE_TEAM}/:id`} element={<ManageTeam /> } />
         </Route>

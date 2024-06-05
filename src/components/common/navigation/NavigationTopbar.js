@@ -41,7 +41,7 @@ export default function NavigationTopbar() {
   };
 
   return (
-    <Box bgcolor="white" borderBottom="1px solid #0000001f">
+    <Box bgcolor="white" borderBottom="1px solid #0000001f" sx={{flex: '0 0 auto'}}>
 
       <Box display={'flex'} alignItems={'center'} justifyContent={'space-between'}  py={0.5}  px={1}>
 

@@ -12,7 +12,9 @@ export const authSlice = createSlice({
     user: null,
     error: null,
     loading: false,
-    isInitialized: false
+    isInitialized: false,
+    isTeamAdmin: false,
+    isTeamCreator: false
   },
   reducers: {
     setUser: (state, action) => {
@@ -28,6 +30,12 @@ export const authSlice = createSlice({
     },
     setLoading: (state, action) => {
       state.loading = action.payload;
+    },
+    setAdmin: (state, action) => {
+      state.isTeamAdmin = action.payload;
+    },
+    setTeamCreator: (state, action) => {
+      state.isTeamCreator = action.payload;
     },
     setInitialized: (state, action) => {
       state.isInitialized = action.payload;
@@ -150,23 +158,33 @@ export const signInWithGoogle = () => async (dispatch) => {
  
 export const initAuthListener = (dispatch) => {
   dispatch(setInitialized(false));
-  auth.onAuthStateChanged(async(user) => {
+  auth.onAuthStateChanged(async(loginUser) => {
     try{
-      if (user) {
-        const response = await dispatch(getUserById(user.uid));
+      if (loginUser) {
+        const user = await dispatch(getUserById(loginUser.uid));
         
         const team_id = localStorage.getItem('team_id');
+        const teamJoinedId = user.teamJoined && user.teamJoined.map(team => team._id);
 
-        if(!team_id && response.teamJoined && response.teamJoined[0]) {
-          localStorage.setItem('team_id', response.teamJoined[0]._id);
+        if(!team_id && user.teamJoined && user.teamJoined[0]) {
+          localStorage.setItem('team_id', user.teamJoined[0]._id);
         } 
 
-        if(team_id){
+        if(team_id && teamJoinedId.includes(team_id)){
           const team = await dispatch(getTeamById(team_id));
+          
+          if((team.admins || []).findIndex(admin => admin._id === user._id) !== -1){
+            dispatch(setAdmin(true));
+          }
+
+          if(user._id === team.createor._id){
+            dispatch(setTeamCreator(true));
+          }
+
           dispatch(setTeam(team));
         }
         
-        dispatch(setUser(response));
+        dispatch(setUser(user));
       } else {
         console.log('no user');
       }
@@ -177,12 +195,14 @@ export const initAuthListener = (dispatch) => {
   });
 };
 
-export const { setUser, setError, clearError, setLoading, setInitialized } = authSlice.actions;
+export const { setUser, setError, clearError, setLoading, setInitialized, setAdmin, setTeamCreator } = authSlice.actions;
 
 export const selectUser = (state) => state.auth.user;
 export const selectError = (state) => state.auth.error;
 export const selectLoading = (state) => state.auth.loading;
 export const selectIsInitialized = (state) => state.auth.isInitialized;
+export const selectAdmin = (state) => state.auth.isTeamAdmin;
+export const selectTeamCreator = (state) => state.auth.isTeamCreator;
 
 
 export default authSlice.reducer;

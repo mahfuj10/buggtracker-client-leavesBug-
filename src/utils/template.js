@@ -109,7 +109,7 @@ const WElCOME_TEMPLATE = (name) => `<!DOCTYPE html>
 
 const WElCOME_TEMPLATE_SUBJECT  = '🎉 Welcome to LeavesBug - Your Ultimate Bug Tracking Platform 🐛';
 
-const TEAM_INVITATION_TEMPLATE = (SENDER_IMAGE_URL, SENDER_NAME, SENDER_EMAIL, REDIRECT_LINK) => `<!DOCTYPE html>
+const TEAM_INVITATION_TEMPLATE = (SENDER_IMAGE_URL, SENDER_NAME, SENDER_EMAIL, REDIRECT_LINK, TEAM_LOGO) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -175,7 +175,7 @@ const TEAM_INVITATION_TEMPLATE = (SENDER_IMAGE_URL, SENDER_NAME, SENDER_EMAIL, R
 <body>
     <div class="container">
         <div class="logo">
-            <img src="https://tse2.mm.bing.net/th/id/OIG2.TNsD34rBnNif_vxI1gY8?pid=ImgGn" alt="LeavesBug Logo">
+            <img src=${TEAM_LOGO} alt="LeavesBug Logo">
         </div>
         <div class="header">
             <h2>You're Invited to Join Our Team!</h2>
@@ -279,15 +279,67 @@ const TEAM_INVITATION_REJECT_TEMPLATE = (invitor_name, invited_person_name) => `
 
 const TEAM_INVITATION_REJECT_SUBJECT = 'Invitation Rejected';
 
+const TEAM_INVITATION_REMINDER_TEAMPLATE = (RECIPIENT_NAME, REDIRECT_LINK, INVITER_NAME) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitation Reminder</title>
+</head>
+<body style="font-family: Arial, sans-serif;">
+
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+    <h2 style="color: #333;">Invitation Reminder</h2>
+    <p>Hello ${RECIPIENT_NAME},</p>
+    <p>This is a friendly reminder that you have been invited to join our team on <b>LeavesBug</b>. We would love to have you on board!</p>
+    <p>To accept the invitation and join the team, simply click on the link below:</p>
+    <p><a href=${REDIRECT_LINK} style="background-color: #007bff; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px;">Accept Invitation</a></p>
+    <p>If you have any questions or need further assistance, feel free to contact us.</p>
+    <p>Best regards,<br>${INVITER_NAME}</p>
+  </div>
+
+</body>
+</html>
+`;
+
+const TEAM_INVITATION_REMINDER_SUBJECT = '🚀 Don\'t Miss Out! Join Our Team on LeavesBug Today!';
+
+const TEAM_INVITATION_WITHDRAW_TEAMPLATE = (RECIPIENT_NAME, INVITER_NAME, INVITER_EMAIL) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitation Withdrawn</title>
+</head>
+<body style="font-family: Arial, sans-serif;">
+
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+    <h2 style="color: #333;">Invitation Withdrawn</h2>
+    <p>Hello ${RECIPIENT_NAME},</p>
+    <p>We regret to inform you that your invitation to join our team on <b>LeavesBug</b> has been withdrawn. We apologize for any inconvenience this may cause.</p>
+    <p>If you have any questions or need further clarification, please feel free to reach out to us.</p>
+    <p>Thank you for your understanding.</p>
+    <p>Best regards,<br>${INVITER_NAME} <br>${INVITER_EMAIL}</p>
+  </div>
+
+</body>
+</html>`;
+
+const TEAM_INVITATION_WITHDRAW_SUBJECT = (TEAM_NAME) => `Important Update: Your Invitation to ${TEAM_NAME} on LeavesBug`;
+
 module.exports = {
   OTP_TEMPLATE,
   WElCOME_TEMPLATE,
   TEAM_INVITATION_TEMPLATE,
   TEAM_DELETE_CONFIRMATION_TEMPLATE,
   TEAM_INVITATION_REJECT_TEMPLATE,
+  TEAM_INVITATION_REMINDER_TEAMPLATE,
+  TEAM_INVITATION_WITHDRAW_TEAMPLATE,
+  TEAM_INVITATION_WITHDRAW_SUBJECT,
   OTP_TEMPLATE_SUBJECT,
   WElCOME_TEMPLATE_SUBJECT,
   TEAM_INVITATION_SUBJECT,
   TEAM_DELETE_CONFIRMATION_SUBJECT,
-  TEAM_INVITATION_REJECT_SUBJECT
+  TEAM_INVITATION_REJECT_SUBJECT,
+  TEAM_INVITATION_REMINDER_SUBJECT
 };

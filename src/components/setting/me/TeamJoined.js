@@ -5,15 +5,17 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, Box, Button, IconButton } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserById, selectUser, setUser, updateUser } from '../../../reducers/auth/authSlice';
-import { Cached, Delete, ExitToApp, RadioButtonChecked } from '@mui/icons-material';
+import { Cached, Delete, ExitToApp, ManageSearch, RadioButtonChecked } from '@mui/icons-material';
 import AlertDialog from '../../common/AlertDialog';
 import { getTeamById, selectTeam, updateTeam, updateTeamState } from '../../../reducers/team/teamSlice';
 import DeleteTeamDialog from './DeleteTeamDialog';
-import { TEAM_UPDATED } from '../../../utils/socket-events';
+import { TEAM_UPDATED, TEAM_UPDATED_GLOBAL } from '../../../utils/socket-events';
 import socket from '../../../utils/socket';
+import { MANAGE_TEAM } from '../../../utils/path';
 
 const rows = [
   'Image',
@@ -27,7 +29,6 @@ const rows = [
 export default function TeamJoined() {
 
   const [openDialog, setOpenDialog] = React.useState(false);
-  const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [selectedTeam, setSelectedTeam] = React.useState({});
 
@@ -35,13 +36,10 @@ export default function TeamJoined() {
   const currentTeam = useSelector(selectTeam);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const toggleDialog = () => {
     setOpenDialog(!openDialog);
-  };
-
-  const toggleDeleteDialog = () => {
-    setOpenDeleteDialog(!openDeleteDialog);
   };
 
   const leaveTeam = async() => {
@@ -59,13 +57,13 @@ export default function TeamJoined() {
       }));
 
       socket.emit(TEAM_UPDATED, updated_team);
+      socket.emit(TEAM_UPDATED_GLOBAL, updated_team);
 
-      await dispatch(updateUser(currentLoginUser._id, {
+      const updated_user = await dispatch(updateUser(currentLoginUser._id, {
         teamJoined: team_joined_ids
       }));
 
-      const user = await dispatch(getUserById(currentLoginUser.uid));
-      dispatch(setUser(user));
+      dispatch(setUser(updated_user));
 
       if(team_joined_ids.length > 0){
         localStorage.setItem('team_id', team_joined_ids && team_joined_ids[0]);
@@ -139,21 +137,18 @@ export default function TeamJoined() {
                   }
                 </Button>
               </TableCell>
-              {/* onClick={() => {
-                        setSelectedTeam(team),
-                        toggleDeleteDialog();
-                      }} */}
+              
               <TableCell align="left">
                 {
                   currentLoginUser._id === team.createor._id ?
                     <Button 
-                      startIcon={<Delete />}
+                      startIcon={<ManageSearch />}
                       variant='outlined'
-                      disabled
-                      color='error'
+                      color='primary'
                       size='small'
+                      onClick={() => navigate(`${MANAGE_TEAM}/${team._id}`)}
                     >
-                      Delete
+                      Manage
                     </Button>
                     :
                     <Button 
@@ -184,12 +179,7 @@ export default function TeamJoined() {
         toggleConfirm={leaveTeam}
       />
 
-      {/* team delete confirmation */}
-      <DeleteTeamDialog
-        open={openDeleteDialog}
-        toggleDialog={toggleDeleteDialog}
-        selectedTeam={selectedTeam}
-      />
+     
     </TableContainer>
   );
 }

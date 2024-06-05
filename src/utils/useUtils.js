@@ -1,3 +1,5 @@
+import { months } from '../components/Calendar/Calendar';
+
 export const useUtils = () => {
   const extractUser = (user) => {
     return {
@@ -134,6 +136,33 @@ export const useUtils = () => {
   
     return Math.ceil(difference / (1000 * 60 * 60 * 24));
   }
+
+  const displayDueDate = (due_date) => {
+    const date = new Date();
+    
+    const formatDate = (date) => {
+      return date.toLocaleDateString('en-CA'); // 'en-CA' format: YYYY-MM-DD
+    };
+
+    const todayDate = formatDate(date);
+    
+    const tomorrow = new Date(date);
+    tomorrow.setDate(date.getDate() + 1);
+    const tomorrowDate = formatDate(tomorrow);
+    
+    const taskDueDate = due_date.split('T')[0];
+    const taskDay = new Date(taskDueDate).getDate();
+    const taskMonth = new Date(taskDueDate).getMonth();
+    const taskYear = new Date(taskDueDate).getFullYear();
+    const formatedTaskDay = taskDay < 10 ? `0${taskDay}` : taskDay;
+
+    if(taskDueDate === todayDate) return 'Today';
+    else if(taskDueDate === tomorrowDate) return 'Tomorrow';
+
+    else if(taskYear < date.getFullYear() || taskDay < date.getDate() || taskMonth < date.getMonth()) return `Expired in ${formatedTaskDay} ${months[taskMonth]}`;
+    
+    else return `${formatedTaskDay} ${months[taskMonth]}`;
+  };
   
   const getCreatedDate  = (createdAt) => {
     return new Date(createdAt).toLocaleDateString('en-US', {
@@ -143,6 +172,45 @@ export const useUtils = () => {
     });
   };
   
+
+  const getFileTypeFromUrl = (firebaseDeployedStorageURL) => {
+    const extension = firebaseDeployedStorageURL.split('.').pop().split('?')[0].toLowerCase();
+
+    const mimeTypes = {
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'gif': 'image/gif',
+      'bmp': 'image/bmp',
+      'webp': 'image/webp',
+      'mp4': 'video/mp4',
+      'webm': 'video/webm',
+      'mp3': 'audio/mpeg',
+      'wav': 'audio/wav',
+      'ogg': 'audio/ogg',
+      'pdf': 'application/pdf',
+      'zip': 'application/zip',
+      'rar': 'application/x-rar-compressed',
+    };
+  
+    return mimeTypes[extension] || 'application/octet-stream';
+  };
+
+  const getFileName = (firebaseDeployedStorageURL) => {
+    const urlParts = firebaseDeployedStorageURL.split('%2F'); 
+    const lastPart = urlParts[urlParts.length - 1];
+    return lastPart.split('?')[0];
+  };
+
+  const debounce = (fn, delay) => {
+    let timer;
+    return function (...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        fn.apply(this, args);
+      }, delay);
+    };
+  };
 
   return {
     extractUser,
@@ -156,7 +224,11 @@ export const useUtils = () => {
     formatDate,
     getRandomColor,
     calculateDaysRemaining,
-    getCreatedDate
+    getCreatedDate,
+    getFileTypeFromUrl,
+    getFileName,
+    displayDueDate,
+    debounce
   };
 };
   
