@@ -7,6 +7,8 @@ export default function NavigationItem({ item , open}) {
   const Icon = item.icon; 
   const navigate = useNavigate();
 
+  const isActivePath = () => window.location.pathname === item.path;
+
   return (
     <ListItem disablePadding sx={{ display: 'block' }}>
       <ListItemButton
@@ -23,12 +25,19 @@ export default function NavigationItem({ item , open}) {
             minWidth: 0,
             mr: open ? 3 : 'auto',
             justifyContent: 'center',
+            color: isActivePath() ? 'black' : ''
           }}
         >
           <Icon />
         </ListItemIcon>
         
-        <ListItemText primary={item.title} sx={{ opacity: open ? 1 : 0 }} />
+        <ListItemText
+          primary={item.title} 
+          sx={{ 
+            opacity: open ? 1 : 0, 
+            color: isActivePath() ? 'black' : '' 
+          }}
+        />
       </ListItemButton>
     </ListItem>
   );

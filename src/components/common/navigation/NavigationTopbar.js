@@ -8,14 +8,12 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
-import PersonAdd from '@mui/icons-material/PersonAdd';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import BugLogo from '../../../assets/img/logo.jpg';
 import { useNavigate } from 'react-router';
-import { LOGIN } from '../../../utils/path';
+import { LOGIN, ME } from '../../../utils/path';
 
 export default function NavigationTopbar() {
 
@@ -98,25 +96,15 @@ export default function NavigationTopbar() {
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <MenuItem onClick={handleClose}>
-            <Avatar /> Profile
-          </MenuItem>
-          <MenuItem onClick={handleClose}>
-            <Avatar /> My account
-          </MenuItem>
-          <Divider />
-          <MenuItem onClick={handleClose}>
-            <ListItemIcon>
-              <PersonAdd fontSize="small" />
-            </ListItemIcon>
-          Add another account
-          </MenuItem>
-          <MenuItem onClick={handleClose}>
+          <MenuItem onClick={() => navigate(ME)}>
             <ListItemIcon>
               <Settings fontSize="small" />
             </ListItemIcon>
           Settings
           </MenuItem>
+
+          <Divider />
+
           <MenuItem onClick={handleSignOut}>
             <ListItemIcon>
               <Logout fontSize="small" />

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {  createUser, getUserById, isUserAlreadyExist, loginWithEmail, selectError, selectLoading, setError, setLoading, setUser, signInWithGoogle, signInAnonymously } from '../../reducers/auth/authSlice';
+import {  createUser, getUserById, isUserAlreadyExist, loginWithEmail, selectError, selectLoading, setError, setLoading, setUser, signInWithGoogle } from '../../reducers/auth/authSlice';
 import { Alert, Box, Button, Paper, TextField, Typography } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useNavigate } from 'react-router-dom';
@@ -81,11 +81,11 @@ export default function LoginForm() {
     navigate(HOME);
   };
 
-  // const handleSignInAnonymously = async() => {
-  //   const res = await dispatch(signInAnonymously());
-  //   console.log(res);
-  // };
- 
+  const handleSignInTestMode = async() => {
+    await dispatch(loginWithEmail('mahfujurr042@gmail.com', 'mahfuj12'));
+
+    navigate(HOME);
+  };
 
   return (
     <Paper 
@@ -93,9 +93,14 @@ export default function LoginForm() {
       sx={{ p: 3, display:'flex', flexDirection:'column', rowGap: 3}}
     >
 
-      <Typography variant='h5' textAlign='left' fontWeight='bold'>
+      <Box display='flex' alignItems='center' justifyContent='space-between'>
+        <Typography variant='h5' textAlign='left' fontWeight='bold'>
         Sign In 
-      </Typography>
+        </Typography>
+
+        <Button onClick={handleSignInTestMode} size='small'>Test Mode</Button>
+
+      </Box>
 
       <TextField
         label="Email *"

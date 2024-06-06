@@ -22,8 +22,6 @@ export default function Home() {
   
   return (
     <>
-      {/* testing */}
-      {/* <Whiteboard /> */}
       {
         !(currentLoginUser && currentLoginUser.teamJoined && currentLoginUser.teamJoined.length > 0) ?
           <Box>
@@ -32,9 +30,8 @@ export default function Home() {
           :
           <Box display='flex'>
             <NavigationSidebar />
-            
+             
             <Outlet />
-
 
           </Box>
       }

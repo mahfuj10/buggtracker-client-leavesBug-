@@ -13,7 +13,7 @@ const CHAT = '/chat';
 const SETTING = '/setting';
 const OVERVIEW = '/overview';
 const REPORTS = '/reports';
-const RELEASES = '/releeases';
+const RELEASES = '/releases';
 const HELP_CENTER = '/help-center';
 
 module.exports = {
