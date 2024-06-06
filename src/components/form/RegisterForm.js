@@ -5,9 +5,10 @@ import OTPInput from '../common/OTPInput';
 import { useDispatch, useSelector } from 'react-redux';
 import {  clearMessage, sendMail, setEmailLoading, updateMessage } from '../../reducers/email/emailSlice';
 import { useNavigate } from 'react-router-dom';
-import { isUserAlreadyExist, registerWithEmail, selectLoading } from '../../reducers/auth/authSlice';
+import { getUserById, isUserAlreadyExist, registerWithEmail, selectLoading, setUser } from '../../reducers/auth/authSlice';
 import { HOME, LOGIN } from '../../utils/path';
 import { OTP_TEMPLATE, OTP_TEMPLATE_SUBJECT, WElCOME_TEMPLATE, WElCOME_TEMPLATE_SUBJECT } from '../../utils/template';
+import { setTeam } from '../../reducers/team/teamSlice';
 
 export default function RegisterForm() {
 
@@ -91,13 +92,23 @@ export default function RegisterForm() {
 
       handleClearMessage();
 
-      await dispatch(registerWithEmail(name, createImageWithInitial(name), email, password));
+      const user = await dispatch(registerWithEmail(name, createImageWithInitial(name), email, password));
+      
+      const response = await dispatch(getUserById(user.uid));
+      
+      if(response.teamJoined && response.teamJoined.length){
+        dispatch(setTeam(response.teamJoined[0]));
+      }
+
+      dispatch(setUser(response));
+      
 
       await dispatch(sendMail({
-        email,
+        email: email,
         subject: WElCOME_TEMPLATE_SUBJECT,
         template: WElCOME_TEMPLATE(name)
       }));
+
 
       navigate(HOME);
     }catch(err){

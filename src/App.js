@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import PrivateRoute from './components/private/PrivateRoute';
-import { LOGIN, REGISTER, HOME, RESET_PASSWORD, CREATE_TEAM, PENDING_INVITE, CREATE_PROJECT, PROJECT, SETTING, ME, MANAGE_PROJECT, MANAGE_TEAM, CHAT } from './utils/path';
+import { LOGIN, REGISTER, HOME, RESET_PASSWORD, CREATE_TEAM, PENDING_INVITE, CREATE_PROJECT, PROJECT, SETTING, ME, MANAGE_PROJECT, MANAGE_TEAM, CHAT, OVERVIEW, REPORTS, HELP_CENTER, RELEASES } from './utils/path';
 import socket from './utils/socket.js';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
@@ -18,10 +18,14 @@ import { getTeamById, selectTeam, setTeam } from './reducers/team/teamSlice.js';
 import Setting from './pages/setting/Setting.js';
 import Me from './pages/setting/me/Me.js';
 import ManageProject from './pages/setting/manage-project/ManageProject.js';
-import { REMOVE_MEMBER_FROM_TEAM, TASK_DELETED, TEAM_DELETED, TEAM_UPDATED } from './utils/socket-events.js';
-import { selectProject, selectSprint, setSprint } from './reducers/project/projectSlice.js';
+import { REMOVE_MEMBER_FROM_TEAM, TEAM_DELETED, TEAM_UPDATED } from './utils/socket-events.js';
+import { selectProject, selectSprint } from './reducers/project/projectSlice.js';
 import ManageTeam from './pages/manage-team/ManageTeam.js';
 import Chat from './pages/chat/Chat.js';
+import Overview from './pages/overview/Overview.js';
+import Reports from './pages/Reports/Reports.js';
+import Releases from './pages/releases/Releases.js';
+import HelpCenter from './pages/help-center/HelpCenter.js';
 
 function App() {
 
@@ -149,6 +153,10 @@ function App() {
           <Route path={CHAT} element={<Chat /> } />
           <Route path={`${MANAGE_PROJECT}/:id`} element={<ManageProject /> } />
           <Route path={`${MANAGE_TEAM}/:id`} element={<ManageTeam /> } />
+          <Route path={OVERVIEW} element={<Overview /> } />
+          <Route path={REPORTS} element={<Reports /> } />
+          <Route path={RELEASES} element={<Releases /> } />
+          <Route path={HELP_CENTER} element={<HelpCenter /> } />
         </Route>
         <Route path={CREATE_TEAM} element={<PrivateRoute><CreateTeam /></PrivateRoute>} />
       </Routes>

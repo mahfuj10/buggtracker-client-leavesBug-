@@ -11,6 +11,10 @@ const MANAGE_TEAM = '/manage-team';
 const ME = '/me';
 const CHAT = '/chat';
 const SETTING = '/setting';
+const OVERVIEW = '/overview';
+const REPORTS = '/reports';
+const RELEASES = '/releeases';
+const HELP_CENTER = '/help-center';
 
 module.exports = {
   LOGIN,
@@ -25,5 +29,9 @@ module.exports = {
   MANAGE_TEAM,
   ME,
   SETTING,
-  CHAT
+  CHAT,
+  OVERVIEW,
+  REPORTS,
+  RELEASES,
+  HELP_CENTER
 };

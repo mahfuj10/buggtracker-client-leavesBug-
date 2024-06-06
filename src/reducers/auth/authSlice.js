@@ -103,7 +103,28 @@ export const loginWithEmail = (email, password) => async (dispatch) => {
     const userCredential = await auth.signInWithEmailAndPassword(email, password);
     const response = await dispatch(getUserById(userCredential.user.uid));
     
+    if(response.teamJoined && response.teamJoined.length){
+      dispatch(setTeam(response.teamJoined[0]));
+    }
+    
     dispatch(setUser(response));
+  } catch (error) {
+    dispatch(setError(error.message));
+  }
+  dispatch(setLoading(false));
+};
+
+export const signInAnonymously = () => async (dispatch) => {
+  try {
+    dispatch(setLoading(true));
+
+    const userCredential = await auth.signInAnonymously();
+    console.log('userCredential',userCredential);
+    // if(response.teamJoined && response.teamJoined.length){
+    //   dispatch(setTeam(response.teamJoined[0]));
+    // }
+    
+    // dispatch(setUser(response));
   } catch (error) {
     dispatch(setError(error.message));
   }
@@ -128,7 +149,7 @@ export const registerWithEmail = (displayName, photoURL,  email, password) => as
     
     await dispatch(createUser(data));
     
-    dispatch(setUser(data));
+    return user;
   } catch (error) {
     dispatch(setError(error.message));
   }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {  createUser, getUserById, isUserAlreadyExist, loginWithEmail, selectError, selectLoading, setError, setLoading, setUser, signInWithGoogle } from '../../reducers/auth/authSlice';
+import {  createUser, getUserById, isUserAlreadyExist, loginWithEmail, selectError, selectLoading, setError, setLoading, setUser, signInWithGoogle, signInAnonymously } from '../../reducers/auth/authSlice';
 import { Alert, Box, Button, Paper, TextField, Typography } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useNavigate } from 'react-router-dom';
@@ -8,13 +8,12 @@ import { HOME, REGISTER, RESET_PASSWORD } from '../../utils/path';
 import { useUtils } from '../../utils/useUtils';
 import { sendMail } from '../../reducers/email/emailSlice';
 import { WElCOME_TEMPLATE, WElCOME_TEMPLATE_SUBJECT } from '../../utils/template';
+import { setTeam } from '../../reducers/team/teamSlice';
 
 export default function LoginForm() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
     
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -22,7 +21,7 @@ export default function LoginForm() {
   const authLoading = useSelector(selectLoading);
   const authError = useSelector(selectError);
 
-  const { isEmailValid, createImageWithInitial, getCurrentLocation } = useUtils();
+  const { isEmailValid, createImageWithInitial } = useUtils();
 
   
   const handleGoogleSignIn = async() => {
@@ -55,6 +54,11 @@ export default function LoginForm() {
       }
 
       const res = await dispatch(getUserById(user.uid));
+      
+      if(res.teamJoined && res.teamJoined.length){
+        dispatch(setTeam(res.teamJoined[0]));
+      }
+      
       dispatch(setUser(res));
 
       navigate(HOME);
@@ -76,6 +80,11 @@ export default function LoginForm() {
 
     navigate(HOME);
   };
+
+  // const handleSignInAnonymously = async() => {
+  //   const res = await dispatch(signInAnonymously());
+  //   console.log(res);
+  // };
  
 
   return (
@@ -121,6 +130,7 @@ export default function LoginForm() {
         >
           Sign in With Google
         </Button>
+      
       </Box>
       
 

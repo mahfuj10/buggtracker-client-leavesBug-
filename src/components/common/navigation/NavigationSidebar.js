@@ -18,6 +18,7 @@ import { selectTeam } from '../../../reducers/team/teamSlice';
 import { Tooltip, Typography } from '@mui/material';
 import NavigationTeamSelectDropdown from './NavigationTeamSelectDropdown';
 import NavigationProjectList from './NavigationProjectList';
+import { CHAT, HELP_CENTER, OVERVIEW, RELEASES, REPORTS, SETTING } from '../../../utils/path';
 
 
 const drawerWidth = 240;
@@ -72,30 +73,34 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 const nav_items = [
   {
     title: 'Overview',
-    icon: WidgetsIcon
+    icon: WidgetsIcon,
+    path: OVERVIEW
   },
   
   {
     title: 'Reports',
-    icon: BugReportIcon
+    icon: BugReportIcon,
+    path: REPORTS
   },
   {
     title: 'Releases',
-    icon: RocketIcon
+    icon: RocketIcon,
+    path: RELEASES
   },
   {
     title: 'Messages',
     icon: MapsUgcIcon,
-    path: '/chat'
+    path: CHAT
   },
   {
     title: 'Settings',
     icon: SettingsIcon,
-    path:'/setting'
+    path:SETTING
   },
   {
     title: 'Help Center',
-    icon: SupportAgentIcon
+    icon: SupportAgentIcon,
+    path: HELP_CENTER
   }
 ];
 

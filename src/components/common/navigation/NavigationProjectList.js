@@ -16,7 +16,7 @@ export default function NavigationProjectList({ open = false }) {
   const currentTeam = useSelector(selectTeam);
   const isTeamAdmin = useSelector(selectAdmin);
   const isTeamCreator = useSelector(selectTeamCreator);
-
+  console.log(currentTeam);
   const navigate = useNavigate();
   const { id } = useParams();
   

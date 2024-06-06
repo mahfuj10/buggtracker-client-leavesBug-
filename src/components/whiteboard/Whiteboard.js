@@ -21,7 +21,8 @@ export default function Whiteboard() {
 
   useEffect(() => {
     socket.on(DRAWING, data => {
-      store.loadSnapshot(JSON.parse(data));
+      console.log(data);
+      // store.loadSnapshot(JSON.parse(data));
     });
 
     return () => {
