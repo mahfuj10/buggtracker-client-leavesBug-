@@ -1,13 +1,34 @@
-import { Adjust, ChatBubble, Flag, KeyboardArrowDown, KeyboardArrowUp, NavigateBefore, NavigateNext } from '@mui/icons-material';
+import { Adjust, ChatBubbleOutline, Flag, KeyboardArrowDown, KeyboardArrowUp, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import moment from 'moment';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { setTask } from '../../../reducers/project/projectSlice';
+import { getCommentCount } from '../../../reducers/comment/commentSlice';
 
 export default function BoardTaskList({ tasks, moveTask, toggleUpdateDrawer = () => {} }) {
   
+  const [commentCounts, setCommentCounts] = useState({});
+  
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const fetchAllCommentCounts = async () => {
+      const counts = {};
+      for (const task of tasks) {
+        try {
+          const response = await dispatch(getCommentCount(task._id));
+          counts[task._id] = response ? response.count : 0;
+        } catch (err) {
+          console.error(err);
+          counts[task._id] = 0;
+        }
+      }
+      setCommentCounts(counts);
+    };
+
+    fetchAllCommentCounts();
+  }, [tasks, dispatch]);
 
   return (
     <>
@@ -121,8 +142,10 @@ export default function BoardTaskList({ tasks, moveTask, toggleUpdateDrawer = ()
                   </IconButton>
                 }
                 <IconButton size='small'>
-                  <ChatBubble fontSize='12px' /> 
-                  <Typography ml={0.5} mt={-0.4}>1</Typography>
+                  <ChatBubbleOutline fontSize='12px' /> 
+                  <Typography ml={0.5} mt={-0.4}>
+                    {commentCounts[task._id] || 0}
+                  </Typography>
                 </IconButton>
               </Box>
             </Box>

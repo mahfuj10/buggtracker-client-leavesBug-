@@ -176,6 +176,23 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
     handleUpdateTask(task._id, { status });
   };
 
+
+  const formatDueDate = (due_date) => {
+    if(!due_date) return 'None';
+    
+    const daysRemaining = calculateDaysRemaining(new Date(), due_date);
+  
+    if (daysRemaining === 0) {
+      return 'Today';
+    } else if (daysRemaining < 0) {
+      return 'Expired';
+    } else if (daysRemaining > 0) {
+      return `${daysRemaining} days left`;
+    } else {
+      return 'None';
+    }
+  };
+
   return (
     <>
       <TableContainer component={Paper}>
@@ -275,7 +292,7 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
                   {
                     task.due_date ?
                       <Chip
-                        label={`${calculateDaysRemaining(new Date(), task.due_date)} days left`}
+                        label={`${formatDueDate(task.due_date)}`}
                         size='small'
                         clickable
                         variant='outlined'

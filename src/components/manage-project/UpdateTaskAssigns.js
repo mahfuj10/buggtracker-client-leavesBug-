@@ -27,7 +27,7 @@ export default function UpdateTaskAssigns({ task,  size = 30, updateAssigns }) {
 
 
   const addMemeber = member => {
-    if(!assigns.includes(member._id)){
+    if(!assigns.map(assign => assign._id).includes(member._id)){
       setAssigns(prev => [...prev, member]);
       updateAssigns(task, [...assigns, member].map(assign => assign._id && assign._id));
     }

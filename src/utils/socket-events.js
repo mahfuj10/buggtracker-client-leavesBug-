@@ -18,6 +18,8 @@ const CHAT_CREATED = 'chat-created';
 const NOTE_CREATED = 'note-created';
 const NOTE_UPDATED = 'note-updated';
 const DRAWING = 'drawing';
+const NEW_COMMENT = 'new-comment';
+const DELETE_COMMENT = 'delete-comment';
 
 module.exports = {
   TASK_DELETED,
@@ -39,5 +41,7 @@ module.exports = {
   CHAT_CREATED,
   NOTE_CREATED,
   NOTE_UPDATED,
-  DRAWING
+  DRAWING,
+  DELETE_COMMENT,
+  NEW_COMMENT
 };

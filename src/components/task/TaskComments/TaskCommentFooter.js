@@ -2,17 +2,19 @@ import { AttachmentOutlined, Close, Description } from '@mui/icons-material';
 import { Box, IconButton, InputBase } from '@mui/material';
 import React, { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectUser } from '../../reducers/auth/authSlice';
-import { saveMessage } from '../../reducers/chat/chatSlice';
 import { useDispatch } from 'react-redux';
-import socket from '../../utils/socket';
-import { SEND_CHAT_MESSAGE } from '../../utils/socket-events';
-import EmojiPicker from '../common/EmojiPicker';
-import { storage } from '../../services/firebase';
-import { useUtils } from '../../utils/useUtils';
+import { selectUser } from '../../../reducers/auth/authSlice';
+import { useUtils } from '../../../utils/useUtils';
+import { storage } from '../../../services/firebase';
+import EmojiPicker from '../../../components/common/EmojiPicker';
+import { NEW_COMMENT } from '../../../utils/socket-events';
+import { selectTask } from '../../../reducers/project/projectSlice';
+import socket from '../../../utils/socket';
+import { createComment } from '../../../reducers/comment/commentSlice';
 import ObjectId from 'bson-objectid';
 
-export default function ChatBoxFooter({ selectedChat, addMessage }) {
+
+export default function TaskCommentFooter({ addComment }) {
 
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +23,8 @@ export default function ChatBoxFooter({ selectedChat, addMessage }) {
 
   const currentLoginUser = useSelector(selectUser);
   const { getFileTypeFromUrl, getFileName }  = useUtils();
+  const task = useSelector(selectTask);
+  
   const dispatch = useDispatch();
 
   const handleImageUpload = (e) => {
@@ -68,31 +72,28 @@ export default function ChatBoxFooter({ selectedChat, addMessage }) {
 
       const objectId = new ObjectId().toHexString();
 
-      const messageData = {
+      const commentData = {
         sender: currentLoginUser,
-        chat: selectedChat,
         createdAt: Date.now(),
         content: content,
-        readBy: [currentLoginUser],
         media: mediaURLS,
         _id: objectId
       };
 
-      socket.emit(SEND_CHAT_MESSAGE, {
-        message: messageData,
-        chatId: selectedChat._id
+      socket.emit(NEW_COMMENT, {
+        comment: commentData,
+        taskId: task._id
       });
 
-      addMessage(messageData);
+      addComment(commentData);
       setContent('');
 
-      await dispatch(saveMessage({
+      await dispatch(createComment({
         _id: objectId,
+        taskId: task._id,
         sender: currentLoginUser._id,
-        chat: selectedChat._id,
-        readBy: [currentLoginUser._id],
         media: mediaURLS,
-        content: messageData.content
+        content: commentData.content
       }));
 
       setMediaURLS([]);
@@ -158,7 +159,7 @@ export default function ChatBoxFooter({ selectedChat, addMessage }) {
         <InputBase
           value={content}
           fullWidth
-          placeholder='Type your message here'
+          placeholder='Write your comment down...'
           sx={{pl: 2}} 
           onKeyDown={handleKeyDown}
           onChange={e => setContent(e.target.value)}

@@ -1,21 +1,41 @@
 import { Avatar, Box, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import FlagIcon from '@mui/icons-material/Flag';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Adjust, ChatBubbleOutline } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDragging, setTask } from '../../../reducers/project/projectSlice';
 import { Draggable } from 'react-beautiful-dnd';
 import { useUtils } from '../../../utils/useUtils';
+import { getCommentCount as getCommentCountAPI } from '../../../reducers/comment/commentSlice';
 
 
 export default function TaskTable({ tasks, toggleUpdateTaskDrawer = () => { } }) {
   const cells = ['Name', 'Assignee', 'Due date', 'Priority', 'Status', 'Comments'];
+  const [commentCounts, setCommentCounts] = useState({});
 
   const isDragging = useSelector(selectDragging);
   const dispatch = useDispatch();
   
   const { calculateDaysRemaining } = useUtils();
+
+  useEffect(() => {
+    const fetchAllCommentCounts = async () => {
+      const counts = {};
+      for (const task of tasks) {
+        try {
+          const response = await dispatch(getCommentCountAPI(task._id));
+          counts[task._id] = response ? response.count : 0;
+        } catch (err) {
+          console.error(err);
+          counts[task._id] = 0;
+        }
+      }
+      setCommentCounts(counts);
+    };
+
+    fetchAllCommentCounts();
+  }, [tasks, dispatch]);
 
   const getDueDate = (due_date) => {
     if(!due_date) return 'None';
@@ -32,7 +52,7 @@ export default function TaskTable({ tasks, toggleUpdateTaskDrawer = () => { } })
       return 'None';
     }
   };
- 
+  
   return (
     <TableContainer component={Box}>
       <Table  aria-label="simple table">
@@ -106,9 +126,18 @@ export default function TaskTable({ tasks, toggleUpdateTaskDrawer = () => { } })
                   </TableCell>
 
                   <TableCell align="left">
-                    <span style={{ display: 'flex', alignItems: 'center', columnGap: '5px' }}>
-                      <FlagIcon fontSize="13px" /> {task.priority && task.priority.name}
-                    </span>
+                    { task.priority ? <Box 
+                      display={'flex'}
+                      color={'#656f7d'} 
+                      alignItems={'center'}
+                      columnGap={'5px'}
+                      textTransform={'uppercase'}
+                    >
+                      <FlagIcon sx={{ fontSize: 18, color: task.priority.color }} /> {task.priority.name}
+                    </Box> 
+                      :
+                      <Box color={'#656f7d'}>Not Added</Box> 
+                    }
                   </TableCell>
 
                   <TableCell align="left">
@@ -132,7 +161,9 @@ export default function TaskTable({ tasks, toggleUpdateTaskDrawer = () => { } })
                   <TableCell align="left">
                     <span style={{ display: 'flex', alignItems: 'center', columnGap: '5px' }}>
                       <ChatBubbleOutline fontSize="13px" sx={{ color: '#656f7d' }} />
-                      <span style={{ fontSize: 13, color: '#656f7d' }}>2</span>
+                      <span style={{ fontSize: 13, color: '#656f7d' }}>
+                        {commentCounts[task._id] || 0}
+                      </span>
                     </span>
                   </TableCell>
                   {provided.placeholder}
