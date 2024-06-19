@@ -129,6 +129,16 @@ export default function MyTasks() {
           </TableHead>
           
           <TableBody>
+
+            {
+              !tasks.length &&
+            <TableRow>
+              <TableCell component="th" scope="row">
+                <Typography> No any tasks. </Typography>
+              </TableCell>
+            </TableRow>
+            }
+
             {
               tasks.map((task) => (
                 <TableRow

@@ -114,6 +114,15 @@ export default function MyTeams() {
           </TableHead>
           <TableBody>
             {
+              !teams.length &&
+            <TableRow>
+              <TableCell component="th" scope="row">
+                <Typography> No any teams. </Typography>
+              </TableCell>
+            </TableRow>
+            }
+
+            {
               teams.map((team) => (
                 <TableRow
                   key={team._id}

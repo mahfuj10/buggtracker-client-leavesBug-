@@ -99,6 +99,16 @@ export default function MyProjects() {
             </TableRow>
           </TableHead>
           <TableBody>
+
+            {
+              !projects.length &&
+            <TableRow>
+              <TableCell component="th" scope="row">
+                <Typography> No any projects. </Typography>
+              </TableCell>
+            </TableRow>
+            }
+
             {
               projects.map((project) => (
                 <TableRow
