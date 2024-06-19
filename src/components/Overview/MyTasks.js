@@ -15,6 +15,8 @@ import { getByCreator } from '../../reducers/task/taskSlice';
 import UpdateTaskDrawer from '../task/update/UpdateTaskDrawer';
 import { setTask } from '../../reducers/project/projectSlice';
 import { selectTeam } from '../../reducers/team/teamSlice';
+import socket from '../../utils/socket';
+import { TASK_UPDATED } from '../../utils/socket-events';
 
 const cells = [
   'Title',
@@ -42,6 +44,25 @@ export default function MyTasks() {
   useEffect(() => {
     fetchTasks(currentPage);
   }, [dispatch]);
+
+  useEffect(() => {
+    socket.on(TASK_UPDATED, async({ task }) => {
+      console.log('object',task);
+      setTasks(prevTasks => {
+        const taskIndex = prevTasks.findIndex(({ _id }) => _id === task._id);
+        if (taskIndex !== -1) {
+          const updatedTasks = [...prevTasks];
+          updatedTasks[taskIndex] = task;
+          return updatedTasks;
+        }
+        return prevTasks;
+      });
+    });
+
+    return () => {
+      socket.off(TASK_UPDATED);
+    };
+  }, [socket]);
   
   const fetchTasks = async(page) => {
     try {

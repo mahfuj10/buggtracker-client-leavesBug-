@@ -109,15 +109,32 @@ export default function AddTaskDrawer({ open, sprint, project, toggleDrawer = ()
       
       socket.emit(NEW_TASK, { sprintId: sprint._id, task: created_task, projectId: project._id });
 
-      toggleDrawer();
+      handleToggleDrawer();
     }catch(err) {
       console.error(err);
     }
     setIsLoading(false);
   };
 
+  const handleToggleDrawer = () => {
+    toggleDrawer();
+    resetState();
+  };
+
+  const resetState = () => {
+    setDescription('');
+    setPriority({});
+    setTitle('');
+    setStatus({});
+    setType('');
+    setAssigns([]);
+    setDueDate(null);
+    setTags([]);
+    setTagInput('');
+  };
+
   return (
-    <Drawer anchor="right" open={open} onClose={() => toggleDrawer()}>
+    <Drawer anchor="right" open={open} onClose={() => handleToggleDrawer()}>
 
       <Box sx={{
         p:2,
@@ -130,7 +147,7 @@ export default function AddTaskDrawer({ open, sprint, project, toggleDrawer = ()
         }
       }}>
         <Box sx={{ float:'right'}} mt={-2}>
-          <IconButton onClick={toggleDrawer}>
+          <IconButton onClick={handleToggleDrawer}>
             <Close />
           </IconButton>
         </Box>

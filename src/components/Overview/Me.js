@@ -47,15 +47,15 @@ export default function Me() {
         </Typography>
 
         <Typography variant='body'>
-            Account created At - <b>{getCreatedDate(currentLoginUser.createdAt)}</b>
+            Account Created At - <b>{getCreatedDate(currentLoginUser.createdAt)}</b>
         </Typography>
 
         <Typography variant='body'>
-            Total team joined - <b>{currentLoginUser.teamJoined.length}</b>
+            Total Team Joined - <b>{currentLoginUser.teamJoined.length}</b>
         </Typography>
         
         <Typography variant='body'>
-            Team invited - <b>{currentLoginUser.teamInvited.length}</b>
+            Team Invited - <b>{currentLoginUser.teamInvited.length}</b>
         </Typography>
 
         <Box>
