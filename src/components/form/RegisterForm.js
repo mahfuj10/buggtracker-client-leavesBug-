@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {  clearMessage, sendMail, setEmailLoading, updateMessage } from '../../reducers/email/emailSlice';
 import { useNavigate } from 'react-router-dom';
 import { getUserById, isUserAlreadyExist, registerWithEmail, selectLoading, setUser } from '../../reducers/auth/authSlice';
-import { HOME, LOGIN } from '../../utils/path';
+import { LOGIN, OVERVIEW } from '../../utils/path';
 import { OTP_TEMPLATE, OTP_TEMPLATE_SUBJECT, WElCOME_TEMPLATE, WElCOME_TEMPLATE_SUBJECT } from '../../utils/template';
 import { setTeam } from '../../reducers/team/teamSlice';
 
@@ -110,7 +110,7 @@ export default function RegisterForm() {
       }));
 
 
-      navigate(HOME);
+      navigate(OVERVIEW);
     }catch(err){
       dispatch(updateMessage('Something went wrong !'));
       console.log(err);

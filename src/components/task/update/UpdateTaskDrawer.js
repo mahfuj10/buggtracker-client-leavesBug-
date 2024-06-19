@@ -334,7 +334,7 @@ export default function UpdateTaskDrawer({ open, toggleDrawer = () => {}, sprint
 
               <Box display='flex' flexWrap='wrap' gap={1}>
                 {
-                  sprint.task_types.map(item => <Chip
+                  (sprint.task_types || []).map(item => <Chip
                     key={item}
                     label={item}
                     sx={{  px: 1 }}

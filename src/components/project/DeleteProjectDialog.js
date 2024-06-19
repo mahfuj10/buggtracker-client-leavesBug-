@@ -1,12 +1,12 @@
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, TextField } from '@mui/material';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteProject, selectProject, setProject } from '../../reducers/project/projectSlice';
+import { deleteProject } from '../../reducers/project/projectSlice';
 import socket from '../../utils/socket';
 import { PROJECT_DELETED, TEAM_UPDATED } from '../../utils/socket-events';
 import { useNavigate } from 'react-router-dom';
 import { getTeamById, selectTeam } from '../../reducers/team/teamSlice';
-import { HOME, MANAGE_PROJECT } from '../../utils/path';
+import { MANAGE_PROJECT, OVERVIEW } from '../../utils/path';
 
 export default function DeleteProjectDialog({open, toggleDialog = () => {}, project}) {
 
@@ -35,7 +35,7 @@ export default function DeleteProjectDialog({open, toggleDialog = () => {}, proj
       if(remining_project.length > 0){
         navigate(`${MANAGE_PROJECT}/${remining_project[remining_project.length - 1]._id}`);
       }else {
-        navigate(HOME);
+        navigate(OVERVIEW);
       }
     }catch(err){
       console.error(err);

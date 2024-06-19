@@ -5,7 +5,7 @@ import Logo from '../components/common/Logo';
 import { useLocation, useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../reducers/auth/authSlice';
-import { HOME, LOGIN } from '../utils/path';
+import { LOGIN, OVERVIEW } from '../utils/path';
 
 export default function Login() {
 
@@ -16,7 +16,7 @@ export default function Login() {
 
   useEffect(() => {
     if(location.pathname === LOGIN && currentLoginUser && currentLoginUser.email){
-      return navigate(HOME);
+      return navigate(OVERVIEW);
     }
   }, [isLogin]);
    

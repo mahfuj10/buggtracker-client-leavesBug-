@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createTeam, getTeamById, setLoading, updateMessage, updateTeam } from '../../reducers/team/teamSlice';
 import { useUtils } from '../../utils/useUtils';
-import { HOME } from '../../utils/path';
+import { OVERVIEW } from '../../utils/path';
 import { TEAM_INVITATION_SUBJECT, TEAM_INVITATION_TEMPLATE } from '../../utils/template';
 import {  sendMail } from '../../reducers/email/emailSlice';
 import { useNavigate } from 'react-router-dom';
@@ -245,7 +245,7 @@ export default function CreateTeam() {
       <Typography
         sx={{ textDecoration:'underline', cursor:'pointer'}}
         variant='caption'
-        onClick={() => navigate(HOME)}
+        onClick={() => navigate(OVERVIEW)}
       >
           Home
       </Typography>

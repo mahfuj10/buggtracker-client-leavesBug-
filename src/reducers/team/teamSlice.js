@@ -26,6 +26,16 @@ export const getTeamById = (id) => async () => {
   }  
 };
 
+export const getTeamByCreator = (creatorId, search = '') => async () => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/team/my?id=${creatorId}&search=${search}`);
+
+    return response.data;
+  } catch (error) {
+    return error;
+  }  
+};
+
 export const updateTeamState = (id) => async (dispatch) => {
   try {
     const res = await dispatch(getTeamById(id));

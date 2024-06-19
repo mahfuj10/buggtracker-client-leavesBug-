@@ -9,6 +9,7 @@ import { selectTask } from '../../../reducers/project/projectSlice';
 import { getComment, deleteComment as deleteCommentAPI } from '../../../reducers/comment/commentSlice';
 import socket from '../../../utils/socket';
 import { DELETE_COMMENT, NEW_COMMENT } from '../../../utils/socket-events';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 
 export default function TaskComments() {
 
@@ -79,6 +80,14 @@ export default function TaskComments() {
     <>
 
       <Box ref={containerRef} sx={{ height: window.innerHeight - 75 }} mx={2} overflow={'scroll'}>
+        
+        {
+          !comments.length &&
+          <Box display={'flex'} alignItems={'center'} height={'100%'} justifyContent={'center'}>
+            <CheckBoxOutlineBlankIcon sx={{ fontSize: 75 , color: '#e3e6ec'}} />
+          </Box>
+        }
+
         {
           comments.map(comment => <Comment
             key={comment._id}

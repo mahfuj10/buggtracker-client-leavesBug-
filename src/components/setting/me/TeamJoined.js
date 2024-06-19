@@ -8,16 +8,15 @@ import TableRow from '@mui/material/TableRow';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Box, Button, IconButton } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserById, selectUser, setUser, updateUser } from '../../../reducers/auth/authSlice';
-import { Cached, Delete, ExitToApp, ManageSearch, RadioButtonChecked } from '@mui/icons-material';
+import { selectUser, setUser, updateUser } from '../../../reducers/auth/authSlice';
+import { Cached, ExitToApp, ManageSearch, RadioButtonChecked } from '@mui/icons-material';
 import AlertDialog from '../../common/AlertDialog';
 import { getTeamById, selectTeam, updateTeam, updateTeamState } from '../../../reducers/team/teamSlice';
-import DeleteTeamDialog from './DeleteTeamDialog';
 import { TEAM_UPDATED, TEAM_UPDATED_GLOBAL } from '../../../utils/socket-events';
 import socket from '../../../utils/socket';
 import { MANAGE_TEAM } from '../../../utils/path';
 
-const rows = [
+const cells = [
   'Image',
   'Name',
   'Total Projects',
@@ -91,7 +90,11 @@ export default function TeamJoined() {
       <Table aria-label="simple table">
         <TableHead>
           <TableRow>
-            {rows.map(row => <TableCell key={row} align="left">{row}</TableCell>)}
+            {
+              cells.map(cell => <TableCell key={cell} align="left">
+                {cell}
+              </TableCell>)
+            }
           </TableRow>
         </TableHead>
         <TableBody>
