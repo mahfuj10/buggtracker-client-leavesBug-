@@ -62,8 +62,6 @@ export default function CreateChatForm() {
         p={2}
         minWidth={'35%'}
       >
-        
-        
 
         <InputBase 
           defaultValue={chatName}
@@ -91,12 +89,11 @@ export default function CreateChatForm() {
           size='small'
           color='success'
           disabled={isLoading}
-          sx={{ mt: 2, float: 'right' }}
           onClick={handleCreateChat}
+          sx={{ mt: 2, float: 'right' }}
         >
             create
         </Button>
-
 
       </Box>
         

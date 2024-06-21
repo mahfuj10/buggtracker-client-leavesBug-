@@ -14,7 +14,8 @@ export const authSlice = createSlice({
     loading: false,
     isInitialized: false,
     isTeamAdmin: false,
-    isTeamCreator: false
+    isTeamCreator: false,
+    clientInnerWidth: 240
   },
   reducers: {
     setUser: (state, action) => {
@@ -40,6 +41,9 @@ export const authSlice = createSlice({
     setInitialized: (state, action) => {
       state.isInitialized = action.payload;
     },
+    setClientInnerWidth: (state, action) => {
+      state.clientInnerWidth = action.payload;
+    }
   },
 });
  
@@ -216,7 +220,7 @@ export const initAuthListener = (dispatch) => {
   });
 };
 
-export const { setUser, setError, clearError, setLoading, setInitialized, setAdmin, setTeamCreator } = authSlice.actions;
+export const { setUser, setError, clearError, setLoading, setInitialized, setAdmin, setTeamCreator, setClientInnerWidth } = authSlice.actions;
 
 export const selectUser = (state) => state.auth.user;
 export const selectError = (state) => state.auth.error;
@@ -224,6 +228,7 @@ export const selectLoading = (state) => state.auth.loading;
 export const selectIsInitialized = (state) => state.auth.isInitialized;
 export const selectAdmin = (state) => state.auth.isTeamAdmin;
 export const selectTeamCreator = (state) => state.auth.isTeamCreator;
+export const selectClientInnerWidth = (state) => state.auth.clientInnerWidth;
 
 
 export default authSlice.reducer;

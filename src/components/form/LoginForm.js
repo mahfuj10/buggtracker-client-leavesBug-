@@ -4,7 +4,7 @@ import {  createUser, getUserById, isUserAlreadyExist, loginWithEmail, selectErr
 import { Alert, Box, Button, Paper, TextField, Typography } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useNavigate } from 'react-router-dom';
-import { HOME, REGISTER, RESET_PASSWORD } from '../../utils/path';
+import { OVERVIEW, REGISTER, RESET_PASSWORD } from '../../utils/path';
 import { useUtils } from '../../utils/useUtils';
 import { sendMail } from '../../reducers/email/emailSlice';
 import { WElCOME_TEMPLATE, WElCOME_TEMPLATE_SUBJECT } from '../../utils/template';
@@ -61,7 +61,7 @@ export default function LoginForm() {
       
       dispatch(setUser(res));
 
-      navigate(HOME);
+      navigate(OVERVIEW);
     }catch(err){
       console.log(err);
     }finally {
@@ -78,13 +78,13 @@ export default function LoginForm() {
 
     await dispatch(loginWithEmail(email, password));
 
-    navigate(HOME);
+    navigate(OVERVIEW);
   };
 
   const handleSignInTestMode = async() => {
     await dispatch(loginWithEmail('mahfujurr042@gmail.com', 'mahfuj12'));
 
-    navigate(HOME);
+    navigate(OVERVIEW);
   };
 
   return (

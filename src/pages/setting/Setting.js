@@ -3,12 +3,13 @@ import NavigationTopbar from '../../components/common/navigation/NavigationTopba
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import { MANAGE_PROJECT, MANAGE_TEAM, ME } from '../../utils/path';
+import { CREATE_TEAM, MANAGE_PROJECT, MANAGE_TEAM, ME } from '../../utils/path';
 import TuneIcon from '@mui/icons-material/Tune';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
 import { useSelector } from 'react-redux';
 import { selectTeam } from '../../reducers/team/teamSlice';
+import { Polyline } from '@mui/icons-material';
 
 export default function Setting() {
 
@@ -18,6 +19,12 @@ export default function Setting() {
       path: ME,
       title: 'Manage Account',
       sub_title: 'Update Your Profile and Preferences'
+    },
+    {
+      icon: Polyline,
+      path: CREATE_TEAM,
+      title: 'New Team',
+      sub_title: 'Crate New Team With Your Friends'
     },
   ];
   // {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box,  Button, Checkbox, Chip,IconButton, InputBase, Paper, Typography } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box,  Button, Checkbox, Chip,IconButton, InputBase, Paper, Typography, Pagination } from '@mui/material';
 import { useUtils } from '../../utils/useUtils';
 import { NEW_TASK, TASK_DELETED, TASK_UPDATED } from '../../utils/socket-events';
 import { Add, CalendarMonth, DeleteOutline } from '@mui/icons-material';
@@ -31,8 +31,11 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openStates, setOpenStates] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   
-  const { calculateDaysRemaining, formatDate } = useUtils();
+  const { displayDueDate, formatDate } = useUtils();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -107,7 +110,13 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
       await dispatch(deleteTasks(selectedTaskIds));
 
       const remainingTasks = sprint.tasks.filter(task => !selectedTaskIds.includes(task._id));
+      
       sprint.tasks = remainingTasks;
+
+      if(currentPage > 1 && getTasksByPage().length === 0){
+        setCurrentPage(currentPage - 1);
+      }
+
 
       socket.emit(TASK_DELETED, {
         projectId: project._id,
@@ -176,21 +185,16 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
     handleUpdateTask(task._id, { status });
   };
 
+  const getTotalPages = () => {
+    return Math.ceil((sprint.tasks || []).length / itemsPerPage);
+  };
 
-  const formatDueDate = (due_date) => {
-    if(!due_date) return 'None';
-    
-    const daysRemaining = calculateDaysRemaining(new Date(), due_date);
-  
-    if (daysRemaining === 0) {
-      return 'Today';
-    } else if (daysRemaining < 0) {
-      return 'Expired';
-    } else if (daysRemaining > 0) {
-      return `${daysRemaining} days left`;
-    } else {
-      return 'None';
-    }
+  const handlePageChange = (_, page) => {
+    setCurrentPage(page);
+  };
+
+  const getTasksByPage = () => {
+    return (sprint.tasks || []).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   };
 
   return (
@@ -253,9 +257,8 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
 
           <TableBody>
 
-
             {
-              sprint && sprint.tasks?.length === 0 && 
+              getTasksByPage().length === 0 && 
             <TableRow>
               <TableCell component="th" scope="row" colSpan={12}>
                 <Typography> No any tasks. </Typography>
@@ -264,7 +267,7 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
             }
 
             { 
-              (sprint.tasks || []).map((task,i) => task._id && <TableRow key={`${task._id}-${i}`}>
+              getTasksByPage().map((task,i) => task._id && <TableRow key={`${task._id}-${i}`}>
                 <TableCell  component="th" scope="row">
                   <Checkbox
                     checked={selectedTaskIds.includes(task._id)}
@@ -292,7 +295,7 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
                   {
                     task.due_date ?
                       <Chip
-                        label={`${formatDueDate(task.due_date)}`}
+                        label={`${displayDueDate(task.due_date)}`}
                         size='small'
                         clickable
                         variant='outlined'
@@ -334,9 +337,20 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
 
               </TableRow>)
             }
-          </TableBody>
 
+          </TableBody>
+          
         </Table>
+
+        <Box m={1} display={'flex'} justifyContent={'end'}>
+          <Pagination 
+            count={getTotalPages()} 
+            variant="outlined"
+            color="secondary" 
+            onChange={handlePageChange}
+          />
+        </Box>
+
       </TableContainer>
 
 

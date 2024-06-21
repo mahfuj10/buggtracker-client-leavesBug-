@@ -138,6 +138,8 @@ export const useUtils = () => {
   }
 
   const displayDueDate = (due_date) => {
+    if(!due_date) return null;
+    
     const date = new Date();
     
     const formatDate = (date) => {

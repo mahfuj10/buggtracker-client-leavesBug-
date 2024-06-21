@@ -7,7 +7,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import {  Box, Button } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser, updateUser, setUser, getUserById } from '../../../reducers/auth/authSlice';
+import { selectUser, updateUser, setUser } from '../../../reducers/auth/authSlice';
 import { getTeamById, updateTeam } from '../../../reducers/team/teamSlice';
 import AlertDialog from '../../common/AlertDialog';
 import { sendMail } from '../../../reducers/email/emailSlice';

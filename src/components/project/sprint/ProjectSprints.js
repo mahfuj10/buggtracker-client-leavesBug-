@@ -1,15 +1,19 @@
-import { Badge, Box, Chip, IconButton } from '@mui/material';
+import { Badge, Box, Button, Chip, IconButton } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import React, { useState } from 'react';
-import { Check, SelectAll } from '@mui/icons-material';
+import { Add, Check, SelectAll } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { MANAGE_PROJECT } from '../../../utils/path';
 
 export default function ProjectSprints({ project, sprint, selectSprint }) {
   
   const [currentPage, setCurrentPage] = useState(0);
 
+  const navigate = useNavigate();
+
   const sprints = project.sprints || [];
-  const itemsPerPage = 4;
+  const itemsPerPage = 10;
   
   const totalPages = Math.ceil(sprints.length / itemsPerPage);
   
@@ -49,6 +53,17 @@ export default function ProjectSprints({ project, sprint, selectSprint }) {
   return (
     <Box display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
       {
+        !sprints.length &&
+        <Button 
+          variant='text'
+          startIcon={<Add />}
+          sx={{ color: 'black' }}
+          onClick={() => navigate(`${MANAGE_PROJECT}/${project._id}`)}
+        >
+            Add Sprint
+        </Button>
+      }
+      {
         renderSprints()
       }
       <Box>
@@ -56,7 +71,7 @@ export default function ProjectSprints({ project, sprint, selectSprint }) {
           <NavigateBeforeIcon />
         </IconButton>
 
-        <IconButton onClick={handleNextPage} disabled={currentPage === totalPages - 1}>
+        <IconButton onClick={handleNextPage} disabled={(currentPage === totalPages - 1) || !sprints.length}>
           <NavigateNextIcon />
         </IconButton>
       </Box>

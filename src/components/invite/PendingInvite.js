@@ -6,7 +6,7 @@ import { getUserById, isUserAlreadyExist, selectUser, setUser, updateUser } from
 import { getTeamById, updateTeam, setTeam as setCurrentTeam } from '../../reducers/team/teamSlice';
 import { Avatar, Box, Button, Chip, Tooltip } from '@mui/material';
 import { useUtils } from '../../utils/useUtils';
-import { HOME, LOGIN } from '../../utils/path';
+import { LOGIN, OVERVIEW } from '../../utils/path';
 import Loader from '../common/Loader/Loader';
 import { TEAM_UPDATED, TEAM_UPDATED_GLOBAL } from '../../utils/socket-events';
 import socket from '../../utils/socket';
@@ -94,7 +94,7 @@ export default function PendingInvite() {
       socket.emit(TEAM_UPDATED_GLOBAL, updated_team);
 
       dispatch(setUser(updated_user));
-      navigate(HOME);
+      navigate(OVERVIEW);
     }catch(err){
       console.log(err);
     }

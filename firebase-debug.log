@@ -1,0 +1,14 @@
+[debug] [2024-06-21T09:41:03.485Z] ----------------------------------------------------------------------
+[debug] [2024-06-21T09:41:03.487Z] Command:       /usr/local/bin/firebase /Users/mahfujurrahman/.cache/firebase/tools/lib/node_modules/firebase-tools/lib/bin/firebase deploy
+[debug] [2024-06-21T09:41:03.487Z] CLI Version:   11.16.1
+[debug] [2024-06-21T09:41:03.487Z] Platform:      darwin
+[debug] [2024-06-21T09:41:03.487Z] Node Version:  v16.16.0
+[debug] [2024-06-21T09:41:03.491Z] Time:          Fri Jun 21 2024 15:41:03 GMT+0600 (Bangladesh Standard Time)
+[debug] [2024-06-21T09:41:03.491Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-06-21T09:41:03.589Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-06-21T09:41:03.591Z] > authorizing via signed-in user (mahfujurr042@gmail.com)
+[debug] [2024-06-21T09:41:03.591Z] [iam] checking project leavesbug-a23a5 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2024-06-21T09:41:03.594Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions [none]
+[debug] [2024-06-21T09:41:03.595Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions x-goog-quota-user=projects/leavesbug-a23a5
+[debug] [2024-06-21T09:41:03.595Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}

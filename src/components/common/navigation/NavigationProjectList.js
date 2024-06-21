@@ -1,4 +1,4 @@
-import { Accordion, AccordionDetails, AccordionSummary, IconButton, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, IconButton, ListItemButton, ListItemIcon, ListItemText, Tooltip } from '@mui/material';
 import React from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
@@ -16,7 +16,7 @@ export default function NavigationProjectList({ open = false }) {
   const currentTeam = useSelector(selectTeam);
   const isTeamAdmin = useSelector(selectAdmin);
   const isTeamCreator = useSelector(selectTeamCreator);
-  console.log(currentTeam);
+
   const navigate = useNavigate();
   const { id } = useParams();
   
@@ -91,18 +91,19 @@ export default function NavigationProjectList({ open = false }) {
             </ListItemIcon>
           
             <ListItemText sx={{ ml: 1, '&:hover .settingsIcon': { opacity: 1 } }}> 
-              <Box
-                fontSize={12}
-                display={'flex'} 
-                alignItems={'center'} 
-                justifyContent={'space-between'}
-                fontWeight={id === project._id ? 'bold' : ''}
-              >
-
-                {project.project_name} 
-
-                {
-                  (isTeamAdmin || isTeamCreator) &&
+              <Tooltip arrow title={project.project_name}>
+                <Box
+                  fontSize={12}
+                  display={'flex'} 
+                  alignItems={'center'} 
+                  justifyContent={'space-between'}
+                  fontWeight={id === project._id ? 'bold' : ''}
+                >
+                  
+                  {project.project_name} 
+                  
+                  {
+                    (isTeamAdmin || isTeamCreator) &&
                 <IconButton size='small' 
                   onClick={(e) => {
                     e.stopPropagation(),
@@ -110,9 +111,10 @@ export default function NavigationProjectList({ open = false }) {
                   }}>
                   <Settings className="settingsIcon" sx={{ opacity: 0, fontSize: 14 }}  />
                 </IconButton>
-                }
+                  }
 
-              </Box> 
+                </Box> 
+              </Tooltip>
             </ListItemText>
 
           </ListItemButton>

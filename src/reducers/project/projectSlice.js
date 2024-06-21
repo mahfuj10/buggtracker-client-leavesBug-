@@ -106,6 +106,16 @@ export const getProjectById = (id) => async () =>  {
   }
 };
 
+export const getProjectByCreator = (creatorId, search = '') => async () =>  {
+  try{
+    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/project/my?id=${creatorId}&search=${search}`);
+
+    return response.data;
+  }catch(err){
+    return err;
+  }
+};
+
 export const saveDrawing = (data) => async () =>  {
   try{
     const response = await axios.post(`${process.env.REACT_APP_SERVER_BASE_URL}/whiteboard/save`, data);

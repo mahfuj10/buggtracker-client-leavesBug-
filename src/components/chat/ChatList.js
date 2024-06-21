@@ -1,4 +1,4 @@
-import { ModeCommentOutlined, Polyline } from '@mui/icons-material';
+import { Close, ModeCommentOutlined, Polyline } from '@mui/icons-material';
 import { Box, IconButton, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -221,13 +221,20 @@ export default function ChatList({ chats, hanldeSelectChat, selectedChat }) {
         className='cursor-pointer'
         onClick={() => setShowChatForm(!showChatForm)}
       >
-        <Polyline /> create new chat
+        {
+          !showChatForm ? <>
+            <Polyline /> create new chat
+          </>
+            : <>
+              <Close /> close 
+            </>
+        }
       </Typography>
 
       {
         showChatForm && 
         <Box position={'absolute'} right={0} top={1} left={0} zIndex={2}>
-          <CreateChatForm />
+          <CreateChatForm  />
         </Box>
       }
 

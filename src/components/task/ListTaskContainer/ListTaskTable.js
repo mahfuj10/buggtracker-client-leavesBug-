@@ -17,7 +17,7 @@ export default function TaskTable({ tasks, toggleUpdateTaskDrawer = () => { } })
   const isDragging = useSelector(selectDragging);
   const dispatch = useDispatch();
   
-  const { calculateDaysRemaining } = useUtils();
+  const { displayDueDate } = useUtils();
 
   useEffect(() => {
     const fetchAllCommentCounts = async () => {
@@ -37,22 +37,6 @@ export default function TaskTable({ tasks, toggleUpdateTaskDrawer = () => { } })
     fetchAllCommentCounts();
   }, [tasks, dispatch]);
 
-  const getDueDate = (due_date) => {
-    if(!due_date) return 'None';
-    
-    const daysRemaining = calculateDaysRemaining(new Date(), due_date);
-  
-    if (daysRemaining === 0) {
-      return 'Today';
-    } else if (daysRemaining < 0) {
-      return 'Expired';
-    } else if (daysRemaining > 0) {
-      return `${daysRemaining} days left`;
-    } else {
-      return 'None';
-    }
-  };
-  
   return (
     <TableContainer component={Box}>
       <Table  aria-label="simple table">
@@ -122,7 +106,7 @@ export default function TaskTable({ tasks, toggleUpdateTaskDrawer = () => { } })
                   </TableCell>
 
                   <TableCell align="left" sx={{ fontSize: 13, color: '#656f7d' }}>
-                    {getDueDate(task.due_date)}
+                    {displayDueDate(task.due_date)}
                   </TableCell>
 
                   <TableCell align="left">
