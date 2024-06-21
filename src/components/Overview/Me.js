@@ -30,7 +30,7 @@ export default function Me() {
   };
 
   return (
-    <Box boxShadow={1} bgcolor={'white'} p={1}>
+    <Box boxShadow={1} bgcolor={'white'} p={2} borderRadius={2}>
       <Typography variant='body'>Welcome <b>{currentLoginUser.name}</b>,</Typography>
 
       <Box display={'flex'} justifyContent={'end'}>
@@ -62,7 +62,7 @@ export default function Me() {
           <Button
             color='error'
             size='small'
-            variant='outlined'
+            variant='text'
             onClick={handleSignOut}
           >
             Sign Out

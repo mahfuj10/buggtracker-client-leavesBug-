@@ -5,6 +5,8 @@ import { useDispatch } from 'react-redux';
 import { setTask } from '../../reducers/project/projectSlice';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { useSelector } from 'react-redux';
+import { selectClientInnerWidth } from '../../reducers/auth/authSlice';
 
 const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 export const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -31,6 +33,8 @@ export default function Calendar({
   const [openYearDatePicker, setOpenYearDatePicker] = useState(false);
 
   const dispatch = useDispatch();
+
+  const clientInnerWidth = useSelector(selectClientInnerWidth);
 
   useEffect(() => {
     renderCalendar(currMonth, currYear);
@@ -133,6 +137,10 @@ export default function Calendar({
     setOpenYearDatePicker(!openYearDatePicker);
   };
 
+  // const getInnerWidth = () => {
+    
+  // }
+
   return (
     <Box mb={2}>
 
@@ -199,13 +207,13 @@ export default function Calendar({
 
       <Divider />
 
-      <Box maxWidth={1013}>
+      <Box maxWidth={window.innerWidth - 240}>
       
         <Box display={'flex'}>
           {
             weekDays.map((day,i) => <Box 
               key={day}
-              width={143.6}
+              width={(window.innerWidth - clientInnerWidth - 15) / 7}
               height={140}
               borderRight={'1px solid #e0e0e0'}
               borderBottom={'1px solid #e0e0e0'}
@@ -223,7 +231,7 @@ export default function Calendar({
           {
             getFirstDayofMonthDates().map((first,i) => <Box
               key={first}
-              width={143.6} 
+              width={(window.innerWidth - clientInnerWidth - 16) / 7} 
               height={140}
               borderRight={'1px solid #e0e0e0'}
               borderBottom={'1px solid #e0e0e0'}
@@ -240,7 +248,7 @@ export default function Calendar({
           {Array.from({ length: lastDateofMonth }, (_, i) => i + 1).map((day) => (
             <Box
               key={day}
-              width={143.6} 
+              width={(window.innerWidth - 255) / 7} 
               height={140}
               display={'flex'}
               flexDirection={'column'}

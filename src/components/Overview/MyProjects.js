@@ -129,15 +129,16 @@ export default function MyProjects() {
                   </TableCell>
               
                   <TableCell align="left">
-                    {
-                      project.sprints.map(sprint =>  <Chip
-                        key={sprint._id}
-                        label={project.team_id.name}
-                        size='small'
-                        variant="outlined"
-                        sx={{ ml: 1}}
-                      />)
-                    }
+                    <Box display={'flex'} flexWrap={'wrap'} gap={1}>
+                      {
+                        project.sprints.map(sprint =>  <Chip
+                          key={sprint._id}
+                          label={sprint.name}
+                          size='small'
+                          variant="outlined"
+                        />)
+                      }
+                    </Box>
                   </TableCell>
 
                   <TableCell align="left">

@@ -26,7 +26,7 @@ export default function Project() {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [project, setProject] = useState({});
   const [sprint, setSprint] = useState({});
-  const [previewScreen, setPreviewScreen] = useState('list');
+  const [previewScreen, setPreviewScreen] = useState('whiteboard');
   const [openUpdateDrawer, setOpenUpdateDrawer] = useState(false); // for update task drawer
   const [dueDate, setDueDate] = useState('');
 

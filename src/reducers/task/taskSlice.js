@@ -10,6 +10,16 @@ export const createTask = (data) => async () =>  {
   }
 };
 
+export const getTaskById = (taskId) => async () =>  {
+  try{
+    const response = await axios.get(`${process.env.REACT_APP_SERVER_BASE_URL}/task/get?id=${taskId}`);
+  
+    return response.data;
+  }catch(err){
+    return err;
+  }
+};
+
 export const updateTask = (id, data) => async () =>  {
   try{
     const response = await axios.put(`${process.env.REACT_APP_SERVER_BASE_URL}/task/update?id=${id}`, data);

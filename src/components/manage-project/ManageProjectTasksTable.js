@@ -110,7 +110,13 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
       await dispatch(deleteTasks(selectedTaskIds));
 
       const remainingTasks = sprint.tasks.filter(task => !selectedTaskIds.includes(task._id));
+      
       sprint.tasks = remainingTasks;
+
+      if(currentPage > 1 && getTasksByPage().length === 0){
+        setCurrentPage(currentPage - 1);
+      }
+
 
       socket.emit(TASK_DELETED, {
         projectId: project._id,
@@ -187,7 +193,9 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
     setCurrentPage(page);
   };
 
-  const currentTasks = (sprint.tasks || []).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const getTasksByPage = () => {
+    return (sprint.tasks || []).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  };
 
   return (
     <>
@@ -250,7 +258,7 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
           <TableBody>
 
             {
-              currentTasks.length === 0 && 
+              getTasksByPage().length === 0 && 
             <TableRow>
               <TableCell component="th" scope="row" colSpan={12}>
                 <Typography> No any tasks. </Typography>
@@ -259,7 +267,7 @@ export default function ManageProjectTasksTable({ project, sprint, updateSprint 
             }
 
             { 
-              (currentTasks || []).map((task,i) => task._id && <TableRow key={`${task._id}-${i}`}>
+              getTasksByPage().map((task,i) => task._id && <TableRow key={`${task._id}-${i}`}>
                 <TableCell  component="th" scope="row">
                   <Checkbox
                     checked={selectedTaskIds.includes(task._id)}

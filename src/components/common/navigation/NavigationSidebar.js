@@ -15,10 +15,17 @@ import NavigationItem from './NavigationItem';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import { useSelector } from 'react-redux';
 import { selectTeam } from '../../../reducers/team/teamSlice';
-import { Tooltip, Typography } from '@mui/material';
+import { Avatar, Chip, Tooltip, Typography } from '@mui/material';
 import NavigationTeamSelectDropdown from './NavigationTeamSelectDropdown';
 import NavigationProjectList from './NavigationProjectList';
-import { CHAT, HELP_CENTER, OVERVIEW, RELEASES, REPORTS, SETTING } from '../../../utils/path';
+import { CHAT, HELP_CENTER, LOGIN, ME, OVERVIEW, RELEASES, REPORTS, SETTING } from '../../../utils/path';
+import { selectUser, setClientInnerWidth, signOut } from '../../../reducers/auth/authSlice';
+import { Logout } from '@mui/icons-material';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useRef } from 'react';
+import { useState } from 'react';
 
 
 const drawerWidth = 240;
@@ -106,18 +113,34 @@ const nav_items = [
 
 export default function NavigationSidebar() {
 
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
   
   const currentTeam = useSelector(selectTeam);
+  const currentLoginUser = useSelector(selectUser);
+  const drawer = useRef(null);
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (drawer.current) {
+      dispatch(setClientInnerWidth(drawer.current.clientWidth));
+    }
+  },[open]);
 
   const handleDrawer = () => {
     setOpen(!open);
   };
 
+  const handleSignOut = () => {
+    dispatch(signOut());
+    localStorage.setItem('team_id', '');
+    navigate(LOGIN);
+  };
   
   return (
     <Box>
-      <Drawer  variant="permanent" open={open}>
+      <Drawer ref={drawer} variant="permanent" open={open}>
         
         <Box display='flex' justifyContent='end'>
           <IconButton size='small' onClick={handleDrawer}>
@@ -169,11 +192,24 @@ export default function NavigationSidebar() {
           </List>
  
 
-          <List>
+          <List sx={{ mb: 2 }}>
             {
               nav_items.slice(4,6).map(item => <NavigationItem open={open} item={item} key={item.title} />)
             }
-            <br />
+
+            <Chip
+              avatar={<Avatar 
+                onClick={() => navigate(ME)}
+                className='cursor-pointer'
+                alt={currentLoginUser.name}
+                src={currentLoginUser.photoURL} 
+              />}
+              onDelete={handleSignOut}
+              label={currentLoginUser.name}
+              deleteIcon={<Logout />}
+              variant="outlined"
+              sx={{ ml: 2.5, mt: 1 }}
+            />
           </List>
         </Box>
       </Drawer>
