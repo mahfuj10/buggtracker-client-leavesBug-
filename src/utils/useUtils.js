@@ -138,7 +138,7 @@ export const useUtils = () => {
   }
 
   const displayDueDate = (due_date) => {
-    if(!due_date) return null;
+    if(!due_date) return 'None';
     
     const date = new Date();
     
