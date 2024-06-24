@@ -12,3 +12,41 @@
 [debug] [2024-06-21T09:41:03.594Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions [none]
 [debug] [2024-06-21T09:41:03.595Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions x-goog-quota-user=projects/leavesbug-a23a5
 [debug] [2024-06-21T09:41:03.595Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2024-06-24T16:52:17.171Z] ----------------------------------------------------------------------
+[debug] [2024-06-24T16:52:17.173Z] Command:       /usr/local/bin/firebase /Users/mahfujurrahman/.cache/firebase/tools/lib/node_modules/firebase-tools/lib/bin/firebase deploy
+[debug] [2024-06-24T16:52:17.173Z] CLI Version:   11.16.1
+[debug] [2024-06-24T16:52:17.174Z] Platform:      darwin
+[debug] [2024-06-24T16:52:17.174Z] Node Version:  v16.16.0
+[debug] [2024-06-24T16:52:17.177Z] Time:          Mon Jun 24 2024 22:52:17 GMT+0600 (Bangladesh Standard Time)
+[debug] [2024-06-24T16:52:17.177Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-06-24T16:52:17.188Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2024-06-24T16:52:17.293Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-06-24T16:52:17.294Z] > authorizing via signed-in user (mahfujurr042@gmail.com)
+[debug] [2024-06-24T16:52:17.294Z] [iam] checking project leavesbug-a23a5 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2024-06-24T16:52:17.296Z] > refreshing access token with scopes: []
+[debug] [2024-06-24T16:52:17.297Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2024-06-24T16:52:17.298Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-06-24T16:52:17.621Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2024-06-24T16:52:17.624Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-06-24T16:52:17.643Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions [none]
+[debug] [2024-06-24T16:52:17.645Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions x-goog-quota-user=projects/leavesbug-a23a5
+[debug] [2024-06-24T16:52:17.645Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2024-06-24T16:52:17.997Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2024-06-24T16:52:18.000Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2024-06-24T16:52:19.346Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions 200
+[debug] [2024-06-24T16:52:19.349Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/leavesbug-a23a5:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2024-06-24T16:52:19.351Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/leavesbug-a23a5 [none]
+[debug] [2024-06-24T16:52:20.143Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/leavesbug-a23a5 200
+[debug] [2024-06-24T16:52:20.143Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/leavesbug-a23a5 {"projectId":"leavesbug-a23a5","projectNumber":"343786064232","displayName":"leavesBug","name":"projects/leavesbug-a23a5","resources":{"hostingSite":"leavesbug-a23a5","storageBucket":"leavesbug-a23a5.appspot.com","locationId":"asia-southeast1"},"state":"ACTIVE","etag":"1_90c43117-c000-4bda-86f7-4433c9cd55d7"}
+[info] 
+[info] === Deploying to 'leavesbug-a23a5'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2024-06-24T16:52:20.153Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/leavesbug-a23a5/versions [none]
+[debug] [2024-06-24T16:52:20.153Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/leavesbug-a23a5/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2024-06-24T16:52:22.601Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/leavesbug-a23a5/versions 200
+[debug] [2024-06-24T16:52:22.601Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/leavesbug-a23a5/versions {"name":"projects/343786064232/sites/leavesbug-a23a5/versions/b8bf69ea9f2ea6a5","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[info] i  hosting[leavesbug-a23a5]: beginning deploy... 
+[info] i  hosting[leavesbug-a23a5]: found 20 files in build 
+[debug] [2024-06-24T16:52:22.625Z] [hosting] uploading with 200 concurrency

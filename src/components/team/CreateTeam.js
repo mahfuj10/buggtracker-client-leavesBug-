@@ -1,13 +1,13 @@
 import { Alert, Avatar, Box, Button, Chip, IconButton, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createTeam, getTeamById, setLoading, updateMessage, updateTeam } from '../../reducers/team/teamSlice';
+import { createTeam, getTeamById, setLoading, updateMessage, updateTeam, updateTeamState } from '../../reducers/team/teamSlice';
 import { useUtils } from '../../utils/useUtils';
 import { OVERVIEW } from '../../utils/path';
 import { TEAM_INVITATION_SUBJECT, TEAM_INVITATION_TEMPLATE } from '../../utils/template';
 import {  sendMail } from '../../reducers/email/emailSlice';
 import { useNavigate } from 'react-router-dom';
-import { isUserAlreadyExist, updateUser } from '../../reducers/auth/authSlice';
+import { getUserById, isUserAlreadyExist, setUser, updateUser } from '../../reducers/auth/authSlice';
 import { Add, Close } from '@mui/icons-material';
 import { storage } from '../../services/firebase';
 import socket from '../../utils/socket';
@@ -49,8 +49,12 @@ export default function CreateTeam() {
         teamJoined: [...user.teamJoined, res.payload._id]
       }));
 
-      setCreatedTeamId(res.payload._id);
+      const updated_user = await dispatch(getUserById(user.uid));
+      dispatch(setUser(updated_user));
 
+      await dispatch(updateTeamState(res.payload._id));      
+
+      setCreatedTeamId(res.payload._id);
       setStep('second');
     }catch(err){
       console.log(err);

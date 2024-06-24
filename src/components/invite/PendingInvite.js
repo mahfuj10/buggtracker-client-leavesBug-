@@ -10,6 +10,8 @@ import { LOGIN, OVERVIEW } from '../../utils/path';
 import Loader from '../common/Loader/Loader';
 import { TEAM_UPDATED, TEAM_UPDATED_GLOBAL } from '../../utils/socket-events';
 import socket from '../../utils/socket';
+import { NEW_MEMBER_JOINED_IMAGE } from '../../utils/notification-images';
+import { sendNotification } from '../Notification/Notification';
 
 export default function PendingInvite() {
 
@@ -88,6 +90,18 @@ export default function PendingInvite() {
       if(updated_user.teamJoined && updated_user.teamJoined.length !== 0){
         localStorage.setItem('team_id', updated_team._id);
         dispatch(setCurrentTeam(updated_team));
+      }
+
+      if(team_members.length){
+        sendNotification(
+          dispatch,
+          team._id,
+          team_members,
+          [currentLoginUser._id],
+          NEW_MEMBER_JOINED_IMAGE,
+          `${invitee.name} joined in ${team.name}`
+        );
+
       }
       
       socket.emit(TEAM_UPDATED, updated_team);

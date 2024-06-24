@@ -8,6 +8,8 @@ import { useDispatch } from 'react-redux';
 import socket from '../../../utils/socket';
 import { REMOVE_MEMBER_FROM_TEAM, TEAM_UPDATED, TEAM_UPDATED_GLOBAL, USER_UPDATED } from '../../../utils/socket-events';
 import { getUserById, selectUser, updateUser } from '../../../reducers/auth/authSlice';
+import { sendNotification } from '../../Notification/Notification';
+import { MEMBER_REMOVED_IMAGE, NOTIFICATION_IMAGE } from '../../../utils/notification-images';
 
 const cells = [
   'Name & Image',
@@ -47,6 +49,17 @@ export default function TeamMembers({ team }) {
         members: remining_team_members
       }));
 
+      if(remining_team_members.length){
+        sendNotification(
+          dispatch,
+          team._id,
+          remining_team_members,
+          [currentLoginUser._id],
+          MEMBER_REMOVED_IMAGE,
+          `${user.name} removed from ${team.name} by ${currentLoginUser.name}`
+        );
+      }
+
       socket.emit(USER_UPDATED, updated_user);
       socket.emit(TEAM_UPDATED_GLOBAL, updated_team);
       socket.emit(TEAM_UPDATED, updated_team);
@@ -68,10 +81,19 @@ export default function TeamMembers({ team }) {
       setIsLoading(true);
       
       const adminsID = team.admins.map(admin => admin._id);
-
+      
       const updated_team = await dispatch(updateTeam(team._id, {
         admins: [...adminsID, selectedMember._id]
       }));
+
+      sendNotification(
+        dispatch,
+        team._id,
+        team.members.map(member => member._id),
+        [currentLoginUser._id],
+        NOTIFICATION_IMAGE,
+        `${selectedMember.name} is new admin of ${team.name}`
+      );
 
       socket.emit(TEAM_UPDATED_GLOBAL, updated_team);
       socket.emit(TEAM_UPDATED, updated_team);
@@ -92,6 +114,15 @@ export default function TeamMembers({ team }) {
       const updated_team = await dispatch(updateTeam(team._id, {
         admins: adminsID
       }));
+
+      sendNotification(
+        dispatch,
+        team._id,
+        team.members.map(member => member._id),
+        [currentLoginUser._id],
+        MEMBER_REMOVED_IMAGE,
+        `${selectedMember.name} is new admin of ${team.name}`
+      );
 
       socket.emit(TEAM_UPDATED_GLOBAL, updated_team);
       socket.emit(TEAM_UPDATED, updated_team);
@@ -188,11 +219,11 @@ export default function TeamMembers({ team }) {
                         startIcon={<PersonRemove />}
                         disabled={isLoading}
                         >
-                        Remove
+                        Remove Member
                         </Button>
                       }
                       
-                      <Button startIcon={<Chat />}>Chat</Button>
+                      <Button disabled startIcon={<Chat />}>Chat</Button>
                       
                       { 
                         !isAdmin(member._id) &&  team.createor._id !== member._id && team.createor._id === currentLoginUser._id  &&  <Button

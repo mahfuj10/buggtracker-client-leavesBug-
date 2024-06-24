@@ -42,9 +42,9 @@ export default function Me() {
       </Box>
 
       <Box display={'flex'} flexDirection={'column'} rowGap={2}>
-        <Typography variant='body'>
+        {currentTeam && currentTeam.createor && <Typography variant='body'>
        Your Active Team - <b>{currentTeam.name}</b> - #{ currentTeam.createor._id === currentLoginUser._id ? 'OWNER' : isAdmin(currentLoginUser._id) ? 'ADMIN' : 'MEMBER' }
-        </Typography>
+        </Typography>}
 
         <Typography variant='body'>
             Account Created At - <b>{getCreatedDate(currentLoginUser.createdAt)}</b>

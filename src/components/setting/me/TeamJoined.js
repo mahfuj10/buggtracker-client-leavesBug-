@@ -143,7 +143,7 @@ export default function TeamJoined() {
               
               <TableCell align="left">
                 {
-                  currentLoginUser._id === team.createor._id ?
+                  currentLoginUser._id === team.createor?._id ?
                     <Button 
                       startIcon={<ManageSearch />}
                       variant='outlined'

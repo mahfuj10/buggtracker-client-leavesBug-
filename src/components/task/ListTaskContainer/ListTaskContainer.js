@@ -43,7 +43,7 @@ export default function ListTaskContainer({
   const getTasksByStatus = (status) => {
     return sprint.tasks.filter(task => task.status.name === status.name);
   };
-
+ 
   return (
     <DragDropContext onDragEnd={e => onDragEnd(e)}>
       <Droppable droppableId="Parent" type="droppableItem">
@@ -90,7 +90,9 @@ export default function ListTaskContainer({
                                 {status.name}
                               </Button>
              
-                              <Typography fontSize={12} color='#656f7d'>{sprint.tasks.length}</Typography>
+                              <Typography fontSize={12} color='#656f7d'>
+                                {getTasksByStatus(status).length}
+                              </Typography>
                    
                               <IconButton sx={{ borderRadius: 2 }} size='small' onClick={(e)  =>  e.stopPropagation()}>
                                 <MoreHoriz fontSize='12px' />

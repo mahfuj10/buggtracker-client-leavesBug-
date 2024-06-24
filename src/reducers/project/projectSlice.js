@@ -4,18 +4,18 @@ import axios from 'axios';
 export const projectSlice = createSlice({
   name: 'project',
   initialState: {   
-    selectedProject: {},
-    selectedSprint:  {},
+    // selectedProject: {},
+    // selectedSprint:  {},
     selectedTask: {},
     isDragging: false
   },
   reducers: {
-    setProject: (state, action) => {
-      state.selectedProject = action.payload;
-    },
-    setSprint: (state, action) => {
-      state.selectedSprint = action.payload;
-    },
+    // setProject: (state, action) => {
+    //   state.selectedProject = action.payload;
+    // },
+    // setSprint: (state, action) => {
+    //   state.selectedSprint = action.payload;
+    // },
     setTask: (state, action) => {
       state.selectedTask = action.payload;
     },
@@ -176,10 +176,10 @@ export const deleteNote = (noteId) => async () =>  {
   }
 };
 
-export const { setProject, setSprint, setTask, setDragging } = projectSlice.actions;
+export const { setTask, setDragging } = projectSlice.actions;
 
-export const selectProject = (state) => state.project.selectedProject;
-export const selectSprint = (state) => state.project.selectedSprint;
+// export const selectProject = (state) => state.project.selectedProject;
+// export const selectSprint = (state) => state.project.selectedSprint;
 export const selectTask = (state) => state.project.selectedTask;
 export const selectDragging = (state) => state.project.isDragging;
 

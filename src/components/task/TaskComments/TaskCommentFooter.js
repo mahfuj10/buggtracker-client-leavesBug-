@@ -8,13 +8,15 @@ import { useUtils } from '../../../utils/useUtils';
 import { storage } from '../../../services/firebase';
 import EmojiPicker from '../../../components/common/EmojiPicker';
 import { NEW_COMMENT } from '../../../utils/socket-events';
-import { selectTask } from '../../../reducers/project/projectSlice';
 import socket from '../../../utils/socket';
 import { createComment } from '../../../reducers/comment/commentSlice';
 import ObjectId from 'bson-objectid';
+import { sendNotification } from '../../Notification/Notification';
+import { selectTeam } from '../../../reducers/team/teamSlice';
+import { NEW_COMMENT_IMAGE } from '../../../utils/notification-images';
 
 
-export default function TaskCommentFooter({ addComment }) {
+export default function TaskCommentFooter({ addComment, task }) {
 
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -22,8 +24,9 @@ export default function TaskCommentFooter({ addComment }) {
   const fileInput = useRef(null);
 
   const currentLoginUser = useSelector(selectUser);
+  const currentTeam = useSelector(selectTeam);
+
   const { getFileTypeFromUrl, getFileName }  = useUtils();
-  const task = useSelector(selectTask);
   
   const dispatch = useDispatch();
 
@@ -97,6 +100,17 @@ export default function TaskCommentFooter({ addComment }) {
       }));
 
       setMediaURLS([]);
+
+      if(task.assigns.length){
+        sendNotification(
+          dispatch,
+          currentTeam._id,
+          task.assigns.map(assign => assign._id),
+          [currentLoginUser._id],
+          NEW_COMMENT_IMAGE,
+          `${currentLoginUser.name} added new comment in ${task.title}`
+        );
+      }
       
     }catch(err){
       console.error(err);

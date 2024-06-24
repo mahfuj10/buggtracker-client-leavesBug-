@@ -7,6 +7,10 @@ import { storage } from '../../../services/firebase';
 import { useDispatch } from 'react-redux';
 import socket from '../../../utils/socket';
 import { TEAM_UPDATED, TEAM_UPDATED_GLOBAL } from '../../../utils/socket-events';
+import { sendNotification } from '../../Notification/Notification';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../../reducers/auth/authSlice';
+import { NOTIFICATION_IMAGE } from '../../../utils/notification-images';
 
 export default function TeamProfile({ team }) {
   const [newImageURL, setNewImageURL] = useState('');
@@ -17,7 +21,9 @@ export default function TeamProfile({ team }) {
   const fileInput = useRef(null);
 
   const { getCreatedDate, getFileName } = useUtils();
+
   const dispatch = useDispatch();
+  const currentLoginUser = useSelector(selectUser);
 
   useEffect(() => {
     if(team){
@@ -95,6 +101,15 @@ export default function TeamProfile({ team }) {
         name: name,
         description: description
       }));
+
+      sendNotification(
+        dispatch,
+        team._id,
+        team.members.map(member => member._id),
+        [currentLoginUser._id],
+        NOTIFICATION_IMAGE,
+        `${currentLoginUser.name} made changes in ${team.name}`
+      );
 
       socket.emit(TEAM_UPDATED, updated_team);
       socket.emit(TEAM_UPDATED_GLOBAL, updated_team);

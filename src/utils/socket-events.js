@@ -20,6 +20,7 @@ const NOTE_UPDATED = 'note-updated';
 const DRAWING = 'drawing';
 const NEW_COMMENT = 'new-comment';
 const DELETE_COMMENT = 'delete-comment';
+const SEND_NOTIFICATION = 'send-notification';
 
 module.exports = {
   TASK_DELETED,
@@ -43,5 +44,6 @@ module.exports = {
   NOTE_UPDATED,
   DRAWING,
   DELETE_COMMENT,
-  NEW_COMMENT
+  NEW_COMMENT,
+  SEND_NOTIFICATION
 };

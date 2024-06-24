@@ -18,7 +18,6 @@ import { useUtils } from '../../utils/useUtils';
 const cells = [
   'Image',
   'Name',
-  'Total Projects',
   'Total Member',
   'Created At',
   'Switch',
@@ -61,6 +60,7 @@ export default function MyTeams() {
       setIsLoading(true);
 
       await dispatch(updateTeamState(team._id));
+      
     }catch(err){
       console.error(err);
     }
@@ -140,12 +140,6 @@ export default function MyTeams() {
                     {team.name}
                   </TableCell>
               
-                  <TableCell align="left">
-                    <IconButton size='small'>
-                      {team.projects?.length}
-                    </IconButton>
-                  </TableCell>
-
                   <TableCell align="left">
                     <IconButton size='small'>
                       {team.members?.length}

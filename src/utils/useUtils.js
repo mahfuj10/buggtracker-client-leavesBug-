@@ -138,10 +138,12 @@ export const useUtils = () => {
   }
 
   const displayDueDate = (due_date) => {
+    if(!due_date) return 'None';
+
     const date = new Date();
     
     const formatDate = (date) => {
-      return date.toLocaleDateString('en-CA'); // 'en-CA' format: YYYY-MM-DD
+      return date.toLocaleDateString('en-CA'); // : YYYY-MM-DD
     };
 
     const todayDate = formatDate(date);

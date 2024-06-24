@@ -14,6 +14,8 @@ import Logout from '@mui/icons-material/Logout';
 import BugLogo from '../../../assets/img/logo.jpg';
 import { useNavigate } from 'react-router';
 import { LOGIN, ME } from '../../../utils/path';
+import Notification from '../../Notification/Notification';
+import { ContentCopy } from '@mui/icons-material';
 
 export default function NavigationTopbar() {
 
@@ -38,6 +40,14 @@ export default function NavigationTopbar() {
     setAnchorEl(null);
   };
 
+  const copyToCliboard =  async(text) => {
+    try{
+      await navigator.clipboard.writeText(text);
+    }catch(err){
+      console.error(err);
+    }
+  };
+
   return (
     <Box bgcolor="white" borderBottom="1px solid #0000001f" sx={{flex: '0 0 auto'}}>
 
@@ -47,6 +57,8 @@ export default function NavigationTopbar() {
         
 
         <Box>
+          <Notification />
+          
           <Tooltip title={currentLoginUser.name}>
             <IconButton
               onClick={handleClick}
@@ -96,6 +108,14 @@ export default function NavigationTopbar() {
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
+
+          <MenuItem>
+            {currentLoginUser.email}
+            <ListItemIcon size='small' sx={{ ml: 2}} onClick={() => copyToCliboard(currentLoginUser.email)}>
+              <ContentCopy fontSize="small" />
+            </ListItemIcon>
+          </MenuItem>
+
           <MenuItem onClick={() => navigate(ME)}>
             <ListItemIcon>
               <Settings fontSize="small" />

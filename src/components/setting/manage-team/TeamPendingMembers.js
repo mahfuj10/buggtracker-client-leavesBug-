@@ -94,7 +94,7 @@ export default function TeamPendingMembers({ team }) {
         }
         ));
         
-        socket.emit(USER_UPDATED, updated_user);
+        // socket.emit(USER_UPDATED, updated_user);
         socket.emit(TEAM_UPDATED_GLOBAL, updated_team);
       }
 

@@ -2,7 +2,7 @@ import { Box, Button, Chip, Drawer, IconButton,  TextField, Typography } from '@
 import React, { useEffect, useState } from 'react';
 import QuillEditor from '../quill/QuillEditor';
 import { useDispatch, useSelector } from 'react-redux';
-import { addTaskIntoSprint, getProjectById, selectTask, setProject } from '../../reducers/project/projectSlice';
+import { addTaskIntoSprint, getProjectById, selectTask } from '../../reducers/project/projectSlice';
 import { selectUser } from '../../reducers/auth/authSlice';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import TaskAssignDropdown from './TaskAssignDropdown';
@@ -16,8 +16,16 @@ import { selectTeam } from '../../reducers/team/teamSlice';
 import socket from '../../utils/socket';
 import { NEW_TASK } from '../../utils/socket-events';
 import dayjs from 'dayjs';
+import { sendNotification } from '../Notification/Notification';
+import { CREATE_TASK_IMAGE } from '../../utils/notification-images';
+import { PROJECT } from '../../utils/path';
 
-const priorityList = [{name: 'low', color: 'silver'},{name: 'medium', color: ''},{name: 'high', color: '#FFD700'},{name: 'urgent', color: '#8B0000'}];
+const priorityList = [
+  {name: 'low', color: 'silver'},
+  {name: 'medium', color: ''},
+  {name: 'high', color: '#FFD700'},
+  {name: 'urgent', color: '#8B0000'}
+];
 const taskType = ['bug', 'feature', 'enhancement'];
 
 export default function AddTaskDrawer({ open, sprint, project, toggleDrawer = () => {}, dueDate: initialDueDate = null }) {
@@ -103,11 +111,18 @@ export default function AddTaskDrawer({ open, sprint, project, toggleDrawer = ()
     
       await dispatch(addTaskIntoSprint(project._id, created_task._id, sprintIndex));
 
-      const updated_project = await dispatch(getProjectById(project._id));
-      
-      dispatch(setProject(updated_project));
+      await dispatch(getProjectById(project._id));
       
       socket.emit(NEW_TASK, { sprintId: sprint._id, task: created_task, projectId: project._id });
+
+      sendNotification(dispatch, 
+        currentTeam._id, 
+        currentTeam.members.map(member => member._id),
+        [currentLoginUser._id],
+        CREATE_TASK_IMAGE,
+        `New task in ${project.project_name}`,
+        `${PROJECT}/${project._id}`
+      );
 
       handleToggleDrawer();
     }catch(err) {
@@ -115,6 +130,25 @@ export default function AddTaskDrawer({ open, sprint, project, toggleDrawer = ()
     }
     setIsLoading(false);
   };
+
+  // const sendNotification = async(imageURL, content) => {
+  //   try{
+  //     const notificationDoc = {
+  //       teamId: currentTeam._id,
+  //       imageURL: 'https://tse2.mm.bing.net/th?id=OIG1.Ndwd8KSpc0gk8h4hSr5g&pid=ImgGn',
+  //       content: `New task created in ${project.project_name}`,
+  //       visibleTo: currentTeam.members.map(member => member._id),
+  //       readBy: [currentLoginUser._id], 
+  //       createdAt: Date.now()
+  //     };
+
+  //     await dispatch(saveNotification(notificationDoc));
+
+  //     socket.emit(SEND_NOTIFICATION, notificationDoc);
+  //   }catch(err){
+  //     console.error(err);
+  //   }
+  // };
 
   const handleToggleDrawer = () => {
     toggleDrawer();

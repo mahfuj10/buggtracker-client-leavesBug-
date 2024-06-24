@@ -4,20 +4,17 @@ import TaskCommentFooter from './TaskCommentFooter';
 import Comment from './Comment';
 import Loader from '../../common/Loader/Loader';
 import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux';
-import { selectTask } from '../../../reducers/project/projectSlice';
 import { getComment, deleteComment as deleteCommentAPI } from '../../../reducers/comment/commentSlice';
 import socket from '../../../utils/socket';
 import { DELETE_COMMENT, NEW_COMMENT } from '../../../utils/socket-events';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 
-export default function TaskComments() {
+export default function TaskComments({ task }) {
 
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const dispatch = useDispatch();
-  const task = useSelector(selectTask);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -99,6 +96,7 @@ export default function TaskComments() {
 
       <TaskCommentFooter
         addComment={addComment}
+        task={task}
       />
     </>
   );

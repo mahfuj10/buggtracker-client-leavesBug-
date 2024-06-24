@@ -1,11 +1,12 @@
 import React from 'react';
 import NavigationTopbar from './navigation/NavigationTopbar';
-import { Box, Typography, Divider, Link } from '@mui/material';
+import { Box, Typography, Divider, Link, IconButton } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../reducers/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { CREATE_TEAM, ME } from '../../utils/path';
 import TeamInvited from '../setting/me/TeamInvited';
+import { Cached } from '@mui/icons-material';
 
 export default function NoTeamFound() {
 
@@ -18,7 +19,11 @@ export default function NoTeamFound() {
 
       <Box display={'flex'} justifyContent={'center'} mt={10}>
         <Box bgcolor={'white'} boxShadow={1} borderRadius={1} px={10} py={2}>
-       
+        
+          <IconButton onClick={() => location.reload()}>
+            <Cached />
+          </IconButton>
+
           <br />
         
           <Typography variant='h6'>Hello <b>{currentLoginUser.name}</b>,</Typography>

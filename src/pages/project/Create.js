@@ -13,6 +13,9 @@ import socket from '../../utils/socket';
 import { NEW_TASK, PROJECT_UPDATED, TEAM_UPDATED } from '../../utils/socket-events';
 import AddSprintFormDrawer from '../../components/project/sprint/AddSprintFormDrawer';
 import AddTaskDrawer from '../../components/task/AddTaskDrawer';
+import { sendNotification } from '../../components/Notification/Notification';
+import { NOTIFICATION_IMAGE } from '../../utils/notification-images';
+import { PROJECT } from '../../utils/path';
 
 
 const iconBtnStyle = {
@@ -98,18 +101,27 @@ export default function Create() {
       setIsLoading(true);
 
       const created_project = await dispatch(createProjectAPI(data));
-      const updated_team = await dispatch(getTeamById(currentTeam._id));
+      const team = await dispatch(getTeamById(currentTeam._id));
       
       // save project id into team.projects collection
-      const res = await dispatch(updateTeam(currentTeam._id, {
-        projects: [...updated_team.projects, created_project._id]
+      const updated_team = await dispatch(updateTeam(currentTeam._id, {
+        projects: [...team.projects, created_project._id]
       }));
       
-      socket.emit(TEAM_UPDATED, res);
+      socket.emit(TEAM_UPDATED, updated_team);
 
       setProject(created_project);
       setSelectedStep('add project sprint');
       setActiveStep(1);
+
+      sendNotification(dispatch, 
+        currentTeam._id, 
+        currentTeam.members.map(member => member._id),
+        [currentLoginUser._id],
+        NOTIFICATION_IMAGE,
+        `${currentLoginUser.name} created new project '${created_project.project_name}' in ${currentTeam.name}`,
+        `${PROJECT}/${created_project._id}`
+      );
     }catch(err){
       console.error(err);
     }

@@ -506,7 +506,7 @@ export default function UpdateTaskDrawer({ open, toggleDrawer = () => {}, sprint
             </Box>
         
             <Box minWidth={300} borderLeft={'1px solid #0000001f'}>
-              <TaskComments />
+              <TaskComments task={task} />
             </Box>
 
           </>

@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { initAuthListener, selectIsInitialized, selectUser, setAdmin, setUser } from './reducers/auth/authSlice';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import PrivateRoute from './components/private/PrivateRoute';
@@ -19,7 +19,6 @@ import Setting from './pages/setting/Setting.js';
 import Me from './pages/setting/me/Me.js';
 import ManageProject from './pages/setting/manage-project/ManageProject.js';
 import { REMOVE_MEMBER_FROM_TEAM, TEAM_DELETED, TEAM_UPDATED } from './utils/socket-events.js';
-import { selectProject, selectSprint } from './reducers/project/projectSlice.js';
 import ManageTeam from './pages/manage-team/ManageTeam.js';
 import Chat from './pages/chat/Chat.js';
 import Overview from './pages/overview/Overview.js';
@@ -32,8 +31,6 @@ function App() {
   const isInitialized = useSelector(selectIsInitialized);
   const currentTeam = useSelector(selectTeam);
   const currentLoginUser = useSelector(selectUser);
-  const currentProject = useSelector(selectProject);
-  const currentSprint = useSelector(selectSprint);
   
   const dispatch = useDispatch();
 
@@ -89,7 +86,7 @@ function App() {
         const remining_teams = currentLoginUser.teamJoined.filter(team => team._id !== data.teamId);
         if(!remining_teams.length){
           localStorage.removeItem('team_id');
-          dispatch(setTeam({}));
+          location.reload();
         } else {
           localStorage.setItem('team_id', remining_teams[0]._id);
           fetchTeam(remining_teams[0]._id);   
@@ -107,6 +104,7 @@ function App() {
         if(!remining_teams.length){
           localStorage.removeItem('team_id');
           dispatch(setTeam({}));
+          
         } else {
           localStorage.setItem('team_id', remining_teams[0]._id);
           fetchTeam(remining_teams[0]._id);          
